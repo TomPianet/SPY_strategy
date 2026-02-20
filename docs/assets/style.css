@@ -467,23 +467,27 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
 
 /* Performance Comparison Section */
 .performance-section {
-  margin: 0 -18px;
-  padding: 80px 18px;
+  margin: 0 -20px;
+  padding: 80px 20px;
   background: hsl(220 18% 8% / 0.6);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(8px);
 }
 
 .performance-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .performance-title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
   text-align: center;
-  margin: 0 0 16px;
+  margin: 0 auto 16px;
+  max-width: 900px;
   background: linear-gradient(135deg, var(--text), var(--trading-green));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -497,7 +501,7 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
   color: var(--muted);
   font-size: 13px;
   font-family: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
-  margin-bottom: 40px;
+  margin: 0 auto 40px;
   font-weight: 500;
 }
 
@@ -508,12 +512,16 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
   background: hsl(220 18% 10% / 0.8);
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .performance-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  margin: 0 auto;
 }
 
 .performance-table thead {
@@ -531,6 +539,12 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
   letter-spacing: 0.1em;
   border-bottom: 1px solid var(--border);
 }
+.performance-table th:first-child {
+  padding-left: 20px;
+}
+.performance-table th:last-child {
+  padding-right: 20px;
+}
 
 .performance-table td {
   padding: 14px;
@@ -538,6 +552,12 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
   color: var(--text);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 13px;
+}
+.performance-table td:first-child {
+  padding-left: 20px;
+}
+.performance-table td:last-child {
+  padding-right: 20px;
 }
 
 .performance-table tbody tr:last-child td {
