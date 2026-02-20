@@ -212,8 +212,9 @@
 
       console.log(`Found ${ytdRows.length} YTD data points`);
 
-      // Get starting value (first day of 2026)
-      const startValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
+      // Get starting values (first day of 2026) for each strategy
+      const strategyStartValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
+      const spyStartValue = Number(ytdRows[0]?.BuyHold_SPY_Eq) || 1;
       
       // Calculate returns from start
       const labels = ytdRows.map(r => {
@@ -222,13 +223,13 @@
       });
 
       const strategyData = ytdRows.map(r => {
-        const value = Number(r.Strategy_Net_Eq) || startValue;
-        return ((value / startValue) - 1) * 100; // Return as percentage
+        const value = Number(r.Strategy_Net_Eq) || strategyStartValue;
+        return ((value / strategyStartValue) - 1) * 100; // Return as percentage
       });
 
       const spyData = ytdRows.map(r => {
-        const value = Number(r.BuyHold_SPY_Eq) || startValue;
-        return ((value / startValue) - 1) * 100;
+        const value = Number(r.BuyHold_SPY_Eq) || spyStartValue;
+        return ((value / spyStartValue) - 1) * 100;
       });
 
       const ctx = canvas.getContext("2d");
