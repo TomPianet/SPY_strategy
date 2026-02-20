@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SPY Strategy — Methodology</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <b>SPY Timing + Allocation</b><br>
+          <span>Methodology</span>
+        </div>
+      </div>
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a href="results.html">Results</a>
+        <a href="methodology.html">Methodology</a>
+      </div>
+    </div>
+
+    <header class="header">
+      <div>
+        <h1>Methodology (thesis story)</h1>
+        <p class="subtitle">
+          This page explains the research logic: inputs, model design, why SPY, and what limitations remain.
+        </p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Research question</h2>
+      <div class="small">
+        Can a weekly rules-based allocation strategy using a set of macro/market variables produce better risk-adjusted performance
+        than Buy & Hold SPY (including leveraged B&H), when we include realistic transaction costs and financing?
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Variables and intuition (literature review summary)</h2>
+      <div class="small" style="margin-bottom:10px">
+        Keep this section short in the website and detailed in the written thesis (tables + citations there).
+      </div>
+      <table>
+        <thead><tr><th>Input / Signal</th><th>Why it matters (1 line)</th><th>Expected effect</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Equity trend / momentum</td><td>Captures medium-term persistence in returns</td><td>Risk-on when positive</td></tr>
+          <tr><td class="mono">Rates / bonds (TLT proxy)</td><td>Rates regimes drive discounting + risk appetite</td><td>Shift to bonds in stress</td></tr>
+          <tr><td class="mono">Gold (GLD)</td><td>Stress/hedge asset; diversification vs equities</td><td>Risk-off hedge allocation</td></tr>
+          <tr><td class="mono">Cash (BIL)</td><td>Capital preservation + financing anchor</td><td>Risk control</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Model & workflow</h2>
+      <div class="small">
+        The pipeline produces weekly signals → converts them to execution/effective weights → runs a daily backtest net of:
+        transaction costs (L1 turnover) and financing costs when leverage is used. Hyperparameters can be tuned efficiently
+        (walk-forward / constrained search), with a tuning agent to automate experiments.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Design choices</h2>
+      <div class="small">
+        <ul>
+          <li><span class="mono">SPY vs QQQ</span>: SPY is used as the main market benchmark (broad S&P 500 exposure). QQQ tests can be shown as an annex if the strategy doesn’t transfer.</li>
+          <li><span class="mono">Gold vs Silver</span>: gold is used as the defensive commodity leg due to liquidity/benchmark relevance in academic and practitioner use.</li>
+          <li><span class="mono">Realism</span>: costs + financing are included to avoid “paper-only” results.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Limitations & future work</h2>
+      <div class="small">
+        <ul>
+          <li>Regime shifts and structural breaks can change relationships over time.</li>
+          <li>Signal availability / publication lags can matter; execution assumptions must be consistent.</li>
+          <li>Extensions: more assets, alternative macro variables, robustness tests, and additional transaction cost models.</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="footer">
+      Tip: keep the website readable; keep the detailed literature citations and deeper proofs in the written thesis + appendix.
+    </div>
+  </div>
+
+  <script type="module">
+    import {setActiveNav} from "./assets/app.js";
+    setActiveNav();
+  </script>
+</body>
+</html>
