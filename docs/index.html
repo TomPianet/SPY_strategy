@@ -61,8 +61,129 @@
       </div>
     </section>
 
+    <!-- Performance Comparison Section -->
+    <section class="performance-section">
+      <div class="performance-container">
+        <h2 class="performance-title">Beating the market for the past 10+ years</h2>
+        <div class="performance-subtitle" id="performanceDateRange">[TRADABLE_SAMPLE] 2014-10-21 → 2026-02-19</div>
+        
+        <div class="performance-table-wrapper">
+          <table class="performance-table">
+            <thead>
+              <tr>
+                <th>Strategy</th>
+                <th class="right">CAGR</th>
+                <th class="right">Vol</th>
+                <th class="right">Sharpe</th>
+                <th class="right">Sortino</th>
+                <th class="right">MaxDD</th>
+                <th class="right">Calmar</th>
+              </tr>
+            </thead>
+            <tbody id="performanceBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </div>
-</body>
-</html>
+
+  <script type="module">
+    const fmtPct = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return (n * 100).toFixed(2) + "%";
+    };
+    const fmtNum = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return n.toFixed(2);
+    };
+    const esc = (s) => String(s).replaceAll("_", " ");
+
+    async function loadJSON(path){
+      const r = await fetch(path, {cache:"no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      return await r.json();
+    }
+
+    async function loadCSV(path){
+      const r = await fetch(path, {cache:"no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      const text = await r.text();
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+      if(lines.length === 0) return {headers: [], rows: []};
+      
+      const headers = lines[0].split(",").map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const parts = line.split(",").map(p => p.trim());
+        const obj = {};
+        headers.forEach((h,i)=> {
+          obj[h] = parts[i] || "";
+        });
+        return obj;
+      });
+      return {headers, rows};
+    }
+
+    function renderPerformance(rows){
+      const order = [
+        {name: "Strategy_Net", label: "Strategy_Net", highlight: true},
+        {name: "BuyHold_SPY", label: "BuyHold_SPY", highlight: false},
+        {name: "BuyHold_50TLT_50GLD", label: "BuyHold_50TLT_50GLD", highlight: false},
+        {name: "BuyHold_SPY_1.3x_Net", label: "BuyHold_SPY_1.3x_Net", highlight: false},
+        {name: "BuyHold_SPY_2.0x_Net", label: "BuyHold_SPY_2.0x_Net", highlight: false}
+      ];
+
+      const tradableRows = rows.filter(r => r.Block === "TRADABLE_SAMPLE");
+      const tbody = document.getElementById("performanceBody");
+      if(!tbody) return;
+      
+      tbody.innerHTML = "";
+
+      order.forEach(item => {
+        const r = tradableRows.find(x => x.Series === item.name);
+        if(!r) return;
+
+        const tr = document.createElement("tr");
+        if(item.highlight) tr.classList.add("performance-highlight");
+        
+        tr.innerHTML = `
+          <td class="mono">${esc(item.label)}</td>
+          <td class="right mono">${fmtPct(r.CAGR)}</td>
+          <td class="right mono">${fmtPct(r.Vol)}</td>
+          <td class="right mono">${fmtNum(r.Sharpe)}</td>
+          <td class="right mono">${fmtNum(r.Sortino)}</td>
+          <td class="right mono">${fmtPct(r.MaxDD)}</td>
+          <td class="right mono">${fmtNum(r.Calmar)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function main(){
+      try {
+        const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
+        const rows = metrics.rows.map(r => ({
+          Block: (r.Block || "").trim(),
+          Series: (r.Series || "").trim(),
+          CAGR: r.CAGR ? Number(r.CAGR) : null,
+          Vol: r.Vol ? Number(r.Vol) : null,
+          Sharpe: r.Sharpe ? Number(r.Sharpe) : null,
+          Sortino: r.Sortino ? Number(r.Sortino) : null,
+          MaxDD: r.MaxDD ? Number(r.MaxDD) : null,
+          Calmar: r.Calmar ? Number(r.Calmar) : null
+        }));
+
+        renderPerformance(rows);
+      } catch(err) {
+        console.error("Error in main:", err);
+      }
+    }
+
+    main().catch(err => {
+      console.error("Fatal error:", err);
+    });
+  </script>
 </body>
 </html>

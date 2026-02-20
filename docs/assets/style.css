@@ -393,3 +393,102 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Performance Comparison Section */
+.performance-section {
+  margin: 0 -18px;
+  padding: 60px 18px;
+  background: rgba(17,24,39,.5);
+  border-top: 1px solid var(--border);
+}
+
+.performance-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.performance-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, var(--text), var(--trading-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.performance-subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-family: ui-monospace, 'Courier New', monospace;
+  margin-bottom: 32px;
+}
+
+.performance-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(17,24,39,.72);
+}
+
+.performance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.performance-table thead {
+  background: rgba(9,12,18,.5);
+}
+
+.performance-table th {
+  padding: 14px 12px;
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.performance-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.performance-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.performance-table tbody tr:hover {
+  background: rgba(56,189,248,.05);
+}
+
+.performance-highlight {
+  background: rgba(16,185,129,.08) !important;
+  border-left: 3px solid var(--trading-green);
+}
+
+.performance-highlight:hover {
+  background: rgba(16,185,129,.12) !important;
+}
+
+.performance-highlight td:first-child {
+  font-weight: 600;
+  color: var(--trading-green);
+}
+
+@media (max-width: 768px) {
+  .performance-table {
+    font-size: 11px;
+  }
+  
+  .performance-table th,
+  .performance-table td {
+    padding: 8px 6px;
+  }
+}
