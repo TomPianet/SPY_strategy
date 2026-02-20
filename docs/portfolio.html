@@ -140,6 +140,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script type="module">
+    // Wait for Chart.js to be available
+    if(typeof Chart === 'undefined') {
+      await new Promise(resolve => {
+        const checkChart = setInterval(() => {
+          if(typeof Chart !== 'undefined') {
+            clearInterval(checkChart);
+            resolve();
+          }
+        }, 50);
+        setTimeout(() => {
+          clearInterval(checkChart);
+          resolve();
+        }, 5000);
+      });
+    }
     const fmtPct = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
@@ -436,18 +451,11 @@
         renderYTD(latest.summary || {}, extras);
         renderMetrics(extras);
         
-        // Wait a bit for Chart.js to be fully loaded
+        // Render chart
         if(typeof Chart !== 'undefined') {
           renderYTDChart(equityCSV, ytd?.start);
         } else {
-          console.error("Chart.js not available, retrying...");
-          setTimeout(() => {
-            if(typeof Chart !== 'undefined') {
-              renderYTDChart(equityCSV, ytd?.start);
-            } else {
-              console.error("Chart.js still not loaded");
-            }
-          }, 500);
+          console.error("Chart.js not loaded");
         }
       } catch(err) {
         console.error("Error in main:", err);
