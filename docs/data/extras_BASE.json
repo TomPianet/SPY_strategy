@@ -1,0 +1,143 @@
+{
+  "run_tag": "BASE",
+  "generated_at": "2026-02-20 13:03:28.129041+00:00",
+  "last_backtest_date": "2026-02-19",
+  "investment_scenarios": {
+    "since_start_initial": 1000,
+    "ytd_initial": 1000
+  },
+  "series": {
+    "Strategy (Net)": {
+      "equity_column": "Strategy_Net_Eq",
+      "since_start": {
+        "start": "2013-02-20",
+        "end": "2026-02-19",
+        "final_value_1000": 10532.174772795486,
+        "total_return": 9.532174772795486
+      },
+      "ytd": {
+        "year": 2026,
+        "start": "2026-01-02",
+        "end": "2026-02-19",
+        "start_value": 1000.0,
+        "end_value": 1117.1153124925102,
+        "pnl": 117.11531249251016,
+        "return": 0.11711531249251017
+      },
+      "win_rate_daily": 0.5622514530437442,
+      "best_worst_year": {
+        "best": {
+          "year": 2020,
+          "return": 0.42423204359860067
+        },
+        "worst": {
+          "year": 2015,
+          "return": -0.08826751741943095
+        }
+      },
+      "max_drawdown": {
+        "maxdd": -0.1842613588502292,
+        "date": "2020-03-18"
+      }
+    },
+    "Buy & Hold SPY": {
+      "equity_column": "BuyHold_SPY_Eq",
+      "since_start": {
+        "start": "2013-02-20",
+        "end": "2026-02-19",
+        "final_value_1000": 5665.068840920388,
+        "total_return": 4.665068840920387
+      },
+      "ytd": {
+        "year": 2026,
+        "start": "2026-01-02",
+        "end": "2026-02-19",
+        "start_value": 1000.0,
+        "end_value": 1001.9175279818558,
+        "pnl": 1.9175279818557556,
+        "return": 0.0019175279818557378
+      },
+      "win_rate_daily": 0.5530743346589171,
+      "best_worst_year": {
+        "best": {
+          "year": 2019,
+          "return": 0.31223847110608305
+        },
+        "worst": {
+          "year": 2022,
+          "return": -0.18175369492659899
+        }
+      },
+      "max_drawdown": {
+        "maxdd": -0.33717265762879345,
+        "date": "2020-03-23"
+      }
+    },
+    "B&H SPY 1.3x (Net)": {
+      "equity_column": "BuyHold_SPY_1.3x_Net_Eq",
+      "since_start": {
+        "start": "2013-02-20",
+        "end": "2026-02-19",
+        "final_value_1000": 7636.8104695323145,
+        "total_return": 6.636810469532315
+      },
+      "ytd": {
+        "year": 2026,
+        "start": "2026-01-02",
+        "end": "2026-02-19",
+        "start_value": 1000.0,
+        "end_value": 999.2840469909937,
+        "pnl": -0.7159530090062844,
+        "return": -0.0007159530090062871
+      },
+      "win_rate_daily": 0.5512389109819517,
+      "best_worst_year": {
+        "best": {
+          "year": 2019,
+          "return": 0.39959523289566534
+        },
+        "worst": {
+          "year": 2022,
+          "return": -0.24624899753231966
+        }
+      },
+      "max_drawdown": {
+        "maxdd": -0.4219125927231967,
+        "date": "2020-03-23"
+      }
+    },
+    "B&H SPY 2.0x (Net)": {
+      "equity_column": "BuyHold_SPY_2.0x_Net_Eq",
+      "since_start": {
+        "start": "2013-02-20",
+        "end": "2026-02-19",
+        "final_value_1000": 13419.576527162488,
+        "total_return": 12.419576527162487
+      },
+      "ytd": {
+        "year": 2026,
+        "start": "2026-01-02",
+        "end": "2026-02-19",
+        "start_value": 1000.0,
+        "end_value": 992.5561022665545,
+        "pnl": -7.44389773344551,
+        "return": -0.007443897733445559
+      },
+      "win_rate_daily": 0.5494034873049862,
+      "best_worst_year": {
+        "best": {
+          "year": 2021,
+          "return": 0.6212403414106649
+        },
+        "worst": {
+          "year": 2022,
+          "return": -0.3903877350737749
+        }
+      },
+      "max_drawdown": {
+        "maxdd": -0.5895771113968521,
+        "date": "2020-03-23"
+      }
+    }
+  }
+}
