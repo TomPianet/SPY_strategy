@@ -142,21 +142,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script type="module">
-    // Wait for Chart.js to be available
-    if(typeof Chart === 'undefined') {
-      await new Promise(resolve => {
-        const checkChart = setInterval(() => {
-          if(typeof Chart !== 'undefined') {
-            clearInterval(checkChart);
-            resolve();
-          }
-        }, 50);
-        setTimeout(() => {
-          clearInterval(checkChart);
-          resolve();
-        }, 5000);
-      });
-    }
     const fmtPct = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
@@ -205,6 +190,13 @@
         return;
       }
 
+      // Check if Chart.js is loaded
+      if(typeof Chart === 'undefined') {
+        console.error("Chart.js not loaded");
+        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart.js failed to load. Please refresh the page.</div>';
+        return;
+      }
+
       // Filter to YTD data only (2026)
       const ytdRows = equityData.rows.filter(r => {
         if(!r.date) return false;
@@ -214,6 +206,7 @@
 
       if(ytdRows.length === 0) {
         console.warn("No 2026 data found for chart");
+        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">No YTD data available for 2026.</div>';
         return;
       }
 
@@ -453,12 +446,18 @@
         renderYTD(latest.summary || {}, extras);
         renderMetrics(extras);
         
-        // Render chart
-        if(typeof Chart !== 'undefined') {
-          renderYTDChart(equityCSV, ytd?.start);
-        } else {
-          console.error("Chart.js not loaded");
-        }
+        // Wait for Chart.js to be available, then render chart
+        const renderChart = () => {
+          if(typeof Chart !== 'undefined') {
+            renderYTDChart(equityCSV, ytd?.start);
+          } else {
+            console.log("Waiting for Chart.js...");
+            setTimeout(renderChart, 100);
+          }
+        };
+        
+        // Start trying to render after a short delay to ensure Chart.js is loaded
+        setTimeout(renderChart, 200);
       } catch(err) {
         console.error("Error in main:", err);
       }
