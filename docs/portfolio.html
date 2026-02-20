@@ -182,8 +182,11 @@
     }
 
     function renderYTDChart(equityData, ytdStartDate){
-      const ctx = document.getElementById("ytdChart");
-      if(!ctx) return;
+      const canvas = document.getElementById("ytdChart");
+      if(!canvas) {
+        console.error("Canvas element not found");
+        return;
+      }
 
       // Filter to YTD data only (2026)
       const ytdRows = equityData.rows.filter(r => {
@@ -192,7 +195,12 @@
         return dateStr.startsWith("2026");
       });
 
-      if(ytdRows.length === 0) return;
+      if(ytdRows.length === 0) {
+        console.warn("No 2026 data found for chart");
+        return;
+      }
+
+      console.log(`Found ${ytdRows.length} YTD data points`);
 
       // Get starting value (first day of 2026)
       const startValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
@@ -212,6 +220,17 @@
         const value = Number(r.BuyHold_SPY_Eq) || startValue;
         return ((value / startValue) - 1) * 100;
       });
+
+      const ctx = canvas.getContext("2d");
+      if(!ctx) {
+        console.error("Could not get canvas context");
+        return;
+      }
+
+      if(typeof Chart === 'undefined') {
+        console.error("Chart.js not loaded");
+        return;
+      }
 
       new Chart(ctx, {
         type: "line",
@@ -416,7 +435,20 @@
         renderAllocation(latest.recommendation || {});
         renderYTD(latest.summary || {}, extras);
         renderMetrics(extras);
-        renderYTDChart(equityCSV, ytd?.start);
+        
+        // Wait a bit for Chart.js to be fully loaded
+        if(typeof Chart !== 'undefined') {
+          renderYTDChart(equityCSV, ytd?.start);
+        } else {
+          console.error("Chart.js not available, retrying...");
+          setTimeout(() => {
+            if(typeof Chart !== 'undefined') {
+              renderYTDChart(equityCSV, ytd?.start);
+            } else {
+              console.error("Chart.js still not loaded");
+            }
+          }, 500);
+        }
       } catch(err) {
         console.error("Error in main:", err);
       }
