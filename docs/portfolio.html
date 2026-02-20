@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SPY Strategy — Live Portfolio</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="brandTitle">SPY Timing + Allocation</div>
+          <div class="brandSub">Live Portfolio</div>
+        </div>
+      </div>
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a href="results.html">Results</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="visuals.html">Visuals</a>
+        <a href="methodology.html">Methodology</a>
+      </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="card" style="margin-top: 24px;">
+      <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em;">Live Portfolio Performance</h1>
+        <div class="small" style="font-size: 14px; color: var(--muted);">Year-to-date tracking since January 2026</div>
+      </div>
+
+      <div class="pills">
+        <span class="pill" id="portfolioDateRange">Period: —</span>
+        <span class="pill" id="portfolioUpdated">Last updated: —</span>
+      </div>
+    </section>
+
+    <!-- Main YTD Performance Card -->
+    <section class="card" style="margin-top: 20px; background: linear-gradient(135deg, hsl(220 18% 10% / 0.9), hsl(220 18% 12% / 0.9)); border: 1px solid hsl(142 72% 45% / 0.2);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; margin-bottom: 32px;">
+        <div>
+          <div class="small" style="margin-bottom: 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace;">Strategy Net</div>
+          <div class="stat-value stat-value-green" id="ytdStrategyMain" style="font-size: 3rem; font-weight: 800; line-height: 1;">—</div>
+          <div class="small" style="margin-top: 8px; color: var(--muted);" id="ytdStrategyPnL">—</div>
+        </div>
+        <div>
+          <div class="small" style="margin-bottom: 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace;">SPY Buy & Hold</div>
+          <div class="stat-value" id="ytdSPYMain" style="font-size: 2.5rem; font-weight: 700; line-height: 1; color: var(--text);">—</div>
+          <div class="small" style="margin-top: 8px; color: var(--muted);" id="ytdSPYPnL">—</div>
+        </div>
+        <div>
+          <div class="small" style="margin-bottom: 12px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace;">Outperformance</div>
+          <div class="stat-value stat-value-green" id="ytdOutperformance" style="font-size: 2.5rem; font-weight: 700; line-height: 1;">—</div>
+          <div class="small" style="margin-top: 8px; color: var(--muted);">vs SPY Buy & Hold</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Current Allocation -->
+    <section class="card" style="margin-top: 20px;">
+      <h2>Current Allocation</h2>
+      <div class="small" id="allocationAsOf" style="margin-bottom: 16px;">As of: —</div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr><th>Asset</th><th class="right">Weight</th><th class="right">Status</th></tr>
+          </thead>
+          <tbody id="allocationBody"></tbody>
+        </table>
+      </div>
+
+      <div class="small" id="allocationFlags" style="margin-top:16px"></div>
+    </section>
+
+    <!-- Performance Comparison -->
+    <section class="card" style="margin-top: 20px;">
+      <h2>YTD Performance Comparison</h2>
+      <div class="small" style="margin-bottom: 20px;">Year-to-date returns comparison across strategies.</div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpiLabel">Strategy (Net)</div>
+          <div class="kpiValue" id="ytdStrategy">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpiLabel">SPY Buy & Hold</div>
+          <div class="kpiValue" id="ytdSPY">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpiLabel">SPY 1.3x (Net)</div>
+          <div class="kpiValue" id="ytd13">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpiLabel">SPY 2.0x (Net)</div>
+          <div class="kpiValue" id="ytd20">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Additional Metrics -->
+    <section class="card" style="margin-top: 20px;">
+      <h2>Portfolio Metrics</h2>
+      <div class="small" style="margin-bottom: 20px;">Key performance indicators for the strategy.</div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
+          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Win Rate</div>
+          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-green);" id="winRate">—</div>
+        </div>
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
+          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Best Year</div>
+          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-green);" id="bestYear">—</div>
+        </div>
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
+          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Worst Year</div>
+          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-red);" id="worstYear">—</div>
+        </div>
+        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
+          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Max Drawdown</div>
+          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-red);" id="maxDD">—</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer muted" style="margin-top: 40px; text-align: center;">
+      Portfolio performance is tracked from the start of the current year. Data updates automatically when new backtest results are available.
+    </div>
+  </div>
+
+  <script type="module">
+    const fmtPct = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return (n * 100).toFixed(2) + "%";
+    };
+    const fmtNum = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return n.toFixed(2);
+    };
+    const fmtCurrency = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return "$" + n.toFixed(2);
+    };
+
+    async function loadJSON(path){
+      const r = await fetch(path, {cache:"no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      return await r.json();
+    }
+
+    function renderAllocation(reco){
+      document.getElementById("allocationAsOf").textContent = "As of: " + (reco.as_of || "—");
+      const w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
+
+      const body = document.getElementById("allocationBody");
+      body.innerHTML = "";
+      ["SPY","TLT","GLD","BIL"].forEach(a => {
+        const weight = Number(w[a]);
+        const tr = document.createElement("tr");
+        const status = weight > 0 ? "Long" : weight < 0 ? "Short" : "Neutral";
+        const statusClass = weight > 0 ? "good" : weight < 0 ? "warn" : "muted";
+        
+        tr.innerHTML = `
+          <td class="mono" style="font-weight: 600;">${a}</td>
+          <td class="right mono" style="font-weight: 600;">${(weight * 100).toFixed(2)}%</td>
+          <td class="right"><span class="${statusClass}" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase;">${status}</span></td>
+        `;
+        body.appendChild(tr);
+      });
+
+      const levOn = !!reco.leverage;
+      const cls = levOn ? "tag warn" : "tag good";
+      const risky = (reco.risky_gross !== undefined) ? Number(reco.risky_gross).toFixed(4) : "—";
+
+      document.getElementById("allocationFlags").innerHTML = `
+        <span class="${cls}">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
+        <span class="muted"> • risky gross: <span class="mono">${risky}x</span></span>
+      `;
+    }
+
+    function renderYTD(summary, extras){
+      const s = summary || {};
+      const e = extras?.series?.["Strategy (Net)"] || {};
+      const ytd = e.ytd || {};
+      
+      // Main YTD returns
+      document.getElementById("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
+      document.getElementById("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
+      
+      // Calculate outperformance
+      const strategyYTD = s.Strategy_Net?.YTD || 0;
+      const spyYTD = s.BuyHold_SPY?.YTD || 0;
+      const outperformance = strategyYTD - spyYTD;
+      document.getElementById("ytdOutperformance").textContent = fmtPct(outperformance);
+      
+      // P&L if available
+      if(ytd.start_value && ytd.end_value){
+        const startVal = ytd.start_value;
+        const endVal = ytd.end_value;
+        const pnl = endVal - startVal;
+        document.getElementById("ytdStrategyPnL").textContent = 
+          `${fmtCurrency(startVal)} → ${fmtCurrency(endVal)} (${fmtCurrency(pnl)})`;
+        
+        // SPY P&L (approximate)
+        const spyStart = startVal;
+        const spyEnd = spyStart * (1 + (s.BuyHold_SPY?.YTD || 0));
+        const spyPnl = spyEnd - spyStart;
+        document.getElementById("ytdSPYPnL").textContent = 
+          `${fmtCurrency(spyStart)} → ${fmtCurrency(spyEnd)} (${fmtCurrency(spyPnl)})`;
+      }
+      
+      // KPI cards
+      document.getElementById("ytdStrategy").textContent = fmtPct(s.Strategy_Net?.YTD);
+      document.getElementById("ytdSPY").textContent = fmtPct(s.BuyHold_SPY?.YTD);
+      document.getElementById("ytd13").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
+      document.getElementById("ytd20").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
+    }
+
+    function renderMetrics(extras){
+      const e = extras?.series?.["Strategy (Net)"] || {};
+      
+      // Win rate
+      if(e.win_rate_daily !== undefined){
+        document.getElementById("winRate").textContent = fmtPct(e.win_rate_daily);
+      }
+      
+      // Best/Worst year
+      if(e.best_worst_year?.best){
+        const best = e.best_worst_year.best;
+        document.getElementById("bestYear").textContent = `${best.year}: ${fmtPct(best.return)}`;
+      }
+      
+      if(e.best_worst_year?.worst){
+        const worst = e.best_worst_year.worst;
+        document.getElementById("worstYear").textContent = `${worst.year}: ${fmtPct(worst.return)}`;
+      }
+      
+      // Max drawdown
+      if(e.max_drawdown?.maxdd !== undefined){
+        document.getElementById("maxDD").textContent = fmtPct(e.max_drawdown.maxdd);
+      }
+    }
+
+    async function main(){
+      try {
+        const latest = await loadJSON("data/latest.json");
+        const extras = await loadJSON("data/extras.json");
+        
+        // Date range
+        const ytd = extras?.series?.["Strategy (Net)"]?.ytd;
+        if(ytd){
+          const startDate = ytd.start ? new Date(ytd.start).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}) : "—";
+          const endDate = ytd.end ? new Date(ytd.end).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}) : "—";
+          document.getElementById("portfolioDateRange").textContent = `Period: ${startDate} → ${endDate}`;
+        }
+        
+        // Last updated
+        if(latest.updated_at){
+          const updated = new Date(latest.updated_at).toLocaleString('en-US', {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+          document.getElementById("portfolioUpdated").textContent = `Last updated: ${updated}`;
+        }
+        
+        renderAllocation(latest.recommendation || {});
+        renderYTD(latest.summary || {}, extras);
+        renderMetrics(extras);
+      } catch(err) {
+        console.error("Error in main:", err);
+      }
+    }
+
+    main().catch(err => {
+      console.error("Fatal error:", err);
+    });
+  </script>
+</body>
+</html>
+
