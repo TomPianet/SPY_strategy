@@ -23,24 +23,86 @@
       </div>
     </nav>
 
-    <header class="hero">
-      <div>
-        <h1>Weekly allocation strategy</h1>
-        <p class="subtitle">
-          A rules-based model allocates weekly across <b>SPY</b>, <b>TLT</b>, <b>GLD</b>, and <b>BIL</b>.
-          The goal is to outperform Buy & Hold benchmarks <span class="muted">(net of costs + financing)</span>.
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <div class="hero-badge-dot"></div>
+          <span class="hero-badge-text">Live · Systematic Trading Research</span>
+        </div>
+
+        <h1 class="hero-title">
+          Quantitative
+          <br />
+          <span class="text-gradient-green">Alpha Generation</span>
+        </h1>
+
+        <p class="hero-description">
+          Data-driven strategies designed to extract consistent returns from market inefficiencies. Built on robust statistical models.
         </p>
 
+        <div class="hero-actions">
+          <a href="results.html" class="btn-primary">
+            View Results
+            <svg class="icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="methodology.html" class="btn-secondary">
+            Methodology
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+      <div class="stats-container">
+        <div class="stat-item">
+          <div class="stat-icon stat-icon-green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Annualized Return</p>
+            <p class="stat-value stat-value-green" id="statCAGR">—</p>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon stat-icon-cyan">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Sharpe Ratio</p>
+            <p class="stat-value stat-value-cyan" id="statSharpe">—</p>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon stat-icon-red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Max Drawdown</p>
+            <p class="stat-value stat-value-red" id="statMaxDD">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <header class="hero">
+      <div>
         <div class="pills">
           <span class="pill" id="pillBacktest">Backtest: —</span>
           <span class="pill" id="pillSample">Sample: —</span>
-        </div>
-      </div>
-
-      <div class="heroCard">
-        <div class="heroCardTitle">Disclaimer</div>
-        <div class="small">
-          Research only. Not financial advice. Past performance is not indicative of future results.
         </div>
       </div>
     </header>
@@ -179,12 +241,16 @@
       const r = await fetch(path, {cache:"no-store"});
       if(!r.ok) throw new Error("Cannot load " + path);
       const text = await r.text();
-      const lines = text.trim().split(/\\r?\\n/);
-      const headers = lines[0].split(",");
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+      if(lines.length === 0) return {headers: [], rows: []};
+      
+      const headers = lines[0].split(",").map(h => h.trim());
       const rows = lines.slice(1).map(line => {
-        const parts = line.split(",");
+        const parts = line.split(",").map(p => p.trim());
         const obj = {};
-        headers.forEach((h,i)=> obj[h] = parts[i]);
+        headers.forEach((h,i)=> {
+          obj[h] = parts[i] || "";
+        });
         return obj;
       });
       return {headers, rows};
@@ -233,18 +299,31 @@
       ];
 
       const sub = rows.filter(r => r.Block === blockName);
-      if(sub.length === 0) return;
+      console.log(`renderBlock(${blockName}): found ${sub.length} rows`);
+      
+      if(sub.length === 0) {
+        console.warn(`No rows found for block: ${blockName}`);
+        return;
+      }
 
       // If your CSV has Start/End columns later, we can display them.
       // For now: show block label only.
-      document.getElementById(rangeId).textContent = "";
+      const rangeEl = document.getElementById(rangeId);
+      if(rangeEl) rangeEl.textContent = "";
 
       const tbody = document.getElementById(tbodyId);
+      if(!tbody) {
+        console.error(`Table body not found: ${tbodyId}`);
+        return;
+      }
       tbody.innerHTML = "";
 
       order.forEach(name => {
         const r = sub.find(x => x.Series === name);
-        if(!r) return;
+        if(!r) {
+          console.log(`Series ${name} not found in ${blockName}`);
+          return;
+        }
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -258,38 +337,82 @@
         `;
         tbody.appendChild(tr);
       });
+      
+      console.log(`Rendered ${tbody.children.length} rows for ${blockName}`);
+    }
+
+    function renderStats(summary, metricsRows){
+      // Get Strategy_Net metrics from TRADABLE_SAMPLE (most relevant)
+      const strategyMetrics = metricsRows.find(r => 
+        r.Block === "TRADABLE_SAMPLE" && r.Series === "Strategy_Net"
+      ) || summary?.Strategy_Net;
+
+      if(strategyMetrics){
+        // Annualized Return (CAGR)
+        const cagr = strategyMetrics.CAGR || summary?.Strategy_Net?.CAGR;
+        document.getElementById("statCAGR").textContent = cagr ? 
+          "+" + fmtPct(cagr) : "—";
+
+        // Sharpe Ratio
+        const sharpe = strategyMetrics.Sharpe || summary?.Strategy_Net?.Sharpe;
+        document.getElementById("statSharpe").textContent = sharpe ? 
+          fmtNum(sharpe) : "—";
+
+        // Max Drawdown
+        const maxdd = strategyMetrics.MaxDD || summary?.Strategy_Net?.MaxDD;
+        document.getElementById("statMaxDD").textContent = maxdd ? 
+          fmtPct(maxdd) : "—";
+      } else {
+        document.getElementById("statCAGR").textContent = "—";
+        document.getElementById("statSharpe").textContent = "—";
+        document.getElementById("statMaxDD").textContent = "—";
+      }
     }
 
     async function main(){
-      const latest = await loadJSON("data/latest.json");
-      document.getElementById("pillBacktest").textContent =
-        "Backtest: " + (latest.last_backtest_date || "—");
-      document.getElementById("pillSample").textContent =
-        "Sample: " + (latest.sample_used_for_metrics || "—");
+      try {
+        const latest = await loadJSON("data/latest.json");
+        document.getElementById("pillBacktest").textContent =
+          "Backtest: " + (latest.last_backtest_date || "—");
+        document.getElementById("pillSample").textContent =
+          "Sample: " + (latest.sample_used_for_metrics || "—");
 
-      renderWeights(latest.recommendation || {});
-      renderYTD(latest.summary || {});
+        renderWeights(latest.recommendation || {});
+        renderYTD(latest.summary || {});
 
-      // Metrics blocks from metrics CSV
-      const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
-      const rows = metrics.rows.map(r => ({
-        Block: r.Block,
-        Series: r.Series,
-        CAGR: r.CAGR,
-        Vol: r.Vol,
-        Sharpe: r.Sharpe,
-        Sortino: r.Sortino,
-        MaxDD: r.MaxDD,
-        Calmar: r.Calmar
-      }));
+        // Metrics blocks from metrics CSV
+        const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
+        console.log("Loaded CSV:", metrics.rows.length, "rows");
+        
+        const rows = metrics.rows.map(r => ({
+          Block: (r.Block || "").trim(),
+          Series: (r.Series || "").trim(),
+          CAGR: r.CAGR ? Number(r.CAGR) : null,
+          Vol: r.Vol ? Number(r.Vol) : null,
+          Sharpe: r.Sharpe ? Number(r.Sharpe) : null,
+          Sortino: r.Sortino ? Number(r.Sortino) : null,
+          MaxDD: r.MaxDD ? Number(r.MaxDD) : null,
+          Calmar: r.Calmar ? Number(r.Calmar) : null
+        }));
 
-      renderBlock(rows, "FULL_SAMPLE", "fullBody", "fullRange");
-      renderBlock(rows, "TRADABLE_SAMPLE", "tradBody", "tradRange");
-      renderBlock(rows, "OOS_SAMPLE_2015_2025", "oosBody", "oosRange");
+        console.log("Processed rows:", rows.length);
+        console.log("Sample row:", rows[0]);
+
+        // Render stats bar with real data
+        renderStats(latest.summary, rows);
+
+        renderBlock(rows, "FULL_SAMPLE", "fullBody", "fullRange");
+        renderBlock(rows, "TRADABLE_SAMPLE", "tradBody", "tradRange");
+        renderBlock(rows, "OOS_SAMPLE_2015_2025", "oosBody", "oosRange");
+      } catch(err) {
+        console.error("Error in main:", err);
+        document.getElementById("pillBacktest").textContent = "Error loading data";
+        throw err;
+      }
     }
 
     main().catch(err => {
-      console.error(err);
+      console.error("Fatal error:", err);
       document.getElementById("pillBacktest").textContent = "Error loading data";
     });
   </script>
