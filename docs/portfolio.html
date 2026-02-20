@@ -332,6 +332,11 @@
           }
         }
       });
+      console.log("Chart created successfully");
+      } catch(err) {
+        console.error("Error creating chart:", err);
+        canvas.parentElement.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--muted);">Error rendering chart: ${err.message}</div>`;
+      }
     }
 
     function renderAllocation(reco){
