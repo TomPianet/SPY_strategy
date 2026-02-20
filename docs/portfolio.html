@@ -28,7 +28,7 @@
     <!-- Header Section -->
     <section class="card" style="margin-top: 24px;">
       <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em;">Live Portfolio Performance 2</h1>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em;">Live Portfolio Performance 3</h1>
         <div class="small" style="font-size: 14px; color: var(--muted);">Year-to-date tracking since January 2026</div>
       </div>
 
@@ -195,8 +195,11 @@
 
       console.log(`Found ${ytdRows.length} YTD data points`);
 
-      // Get starting value (first day of 2026)
-      const startValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
+      // Get starting values (first day of 2026) for each strategy separately
+      const strategyStartValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
+      const spyStartValue = Number(ytdRows[0]?.BuyHold_SPY_Eq) || 1;
+      
+      console.log("Strategy start:", strategyStartValue, "SPY start:", spyStartValue);
       
       // Calculate returns from start
       const labels = ytdRows.map(r => {
@@ -205,14 +208,16 @@
       });
 
       const strategyData = ytdRows.map(r => {
-        const value = Number(r.Strategy_Net_Eq) || startValue;
-        return ((value / startValue) - 1) * 100; // Return as percentage
+        const value = Number(r.Strategy_Net_Eq) || strategyStartValue;
+        return ((value / strategyStartValue) - 1) * 100; // Return as percentage
       });
 
       const spyData = ytdRows.map(r => {
-        const value = Number(r.BuyHold_SPY_Eq) || startValue;
-        return ((value / startValue) - 1) * 100;
+        const value = Number(r.BuyHold_SPY_Eq) || spyStartValue;
+        return ((value / spyStartValue) - 1) * 100;
       });
+      
+      console.log("First strategy return:", strategyData[0], "First SPY return:", spyData[0]);
 
       const ctx = canvas.getContext("2d");
       if(!ctx) {
