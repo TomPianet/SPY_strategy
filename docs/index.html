@@ -43,6 +43,10 @@
           Data-driven strategies designed to extract consistent returns from market inefficiencies. Built on robust statistical models.
         </p>
 
+        <p class="hero-author" style="margin-top: 16px; color: var(--muted); font-size: 14px;">
+          By Tom Pianet
+        </p>
+
         <div class="hero-actions">
           <a href="results.html" class="btn-primary">
             View Results
@@ -57,143 +61,8 @@
       </div>
     </section>
 
-    <!-- Stats Bar -->
-    <section class="stats-bar">
-      <div class="stats-container">
-        <div class="stat-item">
-          <div class="stat-icon stat-icon-green">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <p class="stat-label">Annualized Return</p>
-            <p class="stat-value stat-value-green" id="statCAGR">—</p>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon stat-icon-cyan">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="20" x2="18" y2="10"></line>
-              <line x1="12" y1="20" x2="12" y2="4"></line>
-              <line x1="6" y1="20" x2="6" y2="14"></line>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <p class="stat-label">Sharpe Ratio</p>
-            <p class="stat-value stat-value-cyan" id="statSharpe">—</p>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon stat-icon-red">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <p class="stat-label">Max Drawdown</p>
-            <p class="stat-value stat-value-red" id="statMaxDD">—</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </div>
-
-  <script type="module">
-    const fmtPct = (x) => {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return "—";
-      return (n * 100).toFixed(2) + "%";
-    };
-    const fmtNum = (x) => {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return "—";
-      return n.toFixed(2);
-    };
-
-    async function loadJSON(path){
-      const r = await fetch(path, {cache:"no-store"});
-      if(!r.ok) throw new Error("Cannot load " + path);
-      return await r.json();
-    }
-
-    async function loadCSV(path){
-      const r = await fetch(path, {cache:"no-store"});
-      if(!r.ok) throw new Error("Cannot load " + path);
-      const text = await r.text();
-      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
-      if(lines.length === 0) return {headers: [], rows: []};
-      
-      const headers = lines[0].split(",").map(h => h.trim());
-      const rows = lines.slice(1).map(line => {
-        const parts = line.split(",").map(p => p.trim());
-        const obj = {};
-        headers.forEach((h,i)=> {
-          obj[h] = parts[i] || "";
-        });
-        return obj;
-      });
-      return {headers, rows};
-    }
-
-    function renderStats(summary, metricsRows){
-      // Get Strategy_Net metrics from TRADABLE_SAMPLE (most relevant)
-      const strategyMetrics = metricsRows.find(r => 
-        r.Block === "TRADABLE_SAMPLE" && r.Series === "Strategy_Net"
-      ) || summary?.Strategy_Net;
-
-      if(strategyMetrics){
-        // Annualized Return (CAGR)
-        const cagr = strategyMetrics.CAGR || summary?.Strategy_Net?.CAGR;
-        document.getElementById("statCAGR").textContent = cagr ? 
-          "+" + fmtPct(cagr) : "—";
-
-        // Sharpe Ratio
-        const sharpe = strategyMetrics.Sharpe || summary?.Strategy_Net?.Sharpe;
-        document.getElementById("statSharpe").textContent = sharpe ? 
-          fmtNum(sharpe) : "—";
-
-        // Max Drawdown
-        const maxdd = strategyMetrics.MaxDD || summary?.Strategy_Net?.MaxDD;
-        document.getElementById("statMaxDD").textContent = maxdd ? 
-          fmtPct(maxdd) : "—";
-      } else {
-        document.getElementById("statCAGR").textContent = "—";
-        document.getElementById("statSharpe").textContent = "—";
-        document.getElementById("statMaxDD").textContent = "—";
-      }
-    }
-
-    async function main(){
-      try {
-        const latest = await loadJSON("data/latest.json");
-        
-        // Metrics blocks from metrics CSV
-        const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
-        
-        const rows = metrics.rows.map(r => ({
-          Block: (r.Block || "").trim(),
-          Series: (r.Series || "").trim(),
-          CAGR: r.CAGR ? Number(r.CAGR) : null,
-          Vol: r.Vol ? Number(r.Vol) : null,
-          Sharpe: r.Sharpe ? Number(r.Sharpe) : null,
-          Sortino: r.Sortino ? Number(r.Sortino) : null,
-          MaxDD: r.MaxDD ? Number(r.MaxDD) : null,
-          Calmar: r.Calmar ? Number(r.Calmar) : null
-        }));
-
-        // Render stats bar with real data
-        renderStats(latest.summary, rows);
-      } catch(err) {
-        console.error("Error in main:", err);
-      }
-    }
-
-    main().catch(err => {
-      console.error("Fatal error:", err);
-    });
-  </script>
+</body>
+</html>
 </body>
 </html>
