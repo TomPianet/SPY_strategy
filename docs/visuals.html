@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SPY Strategy — Visuals</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <b>SPY Timing + Allocation</b><br>
+          <span>Visuals</span>
+        </div>
+      </div>
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a href="results.html">Results</a>
+        <a href="visuals.html">Visuals</a>
+        <a href="methodology.html">Methodology</a>
+      </div>
+    </div>
+
+    <header class="header">
+      <div>
+        <h1>Visuals</h1>
+        <p class="subtitle">
+          Equity curve + drawdowns are computed from your exported equity CSV.
+          (No manual updates: just replace <span class="mono">docs/data/</span> and push.)
+        </p>
+        <div class="pills">
+          <span class="pill" id="lastBacktest">Last backtest date: —</span>
+          <span class="pill" id="lastUpdated">Updated: —</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Equity curve (interactive)</h2>
+      <div class="small" style="margin-bottom:10px">
+        Source: <span class="mono">docs/data/equity_curve_TURBO_phase7_BASE.csv</span>
+      </div>
+      <canvas id="eqChart" height="90"></canvas>
+    </section>
+
+    <section class="card">
+      <h2>Drawdown (computed from equity)</h2>
+      <div class="small" style="margin-bottom:10px">
+        Drawdown is computed from the equity series (peak-to-trough).
+      </div>
+      <canvas id="ddChart" height="90"></canvas>
+    </section>
+
+    <section class="card">
+      <h2>Rolling 12-month returns (computed)</h2>
+      <div class="small" style="margin-bottom:10px">
+        Rolling return = Equity(t) / Equity(t−252) − 1 (approx. 1 trading year).
+      </div>
+      <canvas id="rollChart" height="90"></canvas>
+      <div class="footer">
+        If you later export more fields (turnover, trade count, total costs) in a future Phase 9,
+        we can display them here too.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Figures (optional PNGs)</h2>
+      <div class="imgrow">
+        <img class="img" src="data/equity_curve_ALL_TURBO_phase7_BASE.png" alt="Equity curve all" onerror="this.style.display='none'">
+        <img class="img" src="data/drawdown_TURBO_phase7_BASE.png" alt="Drawdown" onerror="this.style.display='none'">
+      </div>
+      <div class="small" style="margin-top:10px">
+        Missing images are hidden automatically.
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module">
+    import {loadJSON, loadCSV, setActiveNav, pickSeries, computeDrawdown, computeRollingReturn} from "./assets/app.js";
+    setActiveNav();
+
+    function makeLineChart(canvasId, labels, datasets){
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      return new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          interaction: {mode:"index", intersect:false},
+          plugins: {
+            legend: {labels:{color:"#e5e7eb"}},
+            tooltip: {callbacks:{
+              label: (item) => `${item.dataset.label}: ${Number(item.raw).toFixed(3)}`
+            }}
+          },
+          scales: {
+            x: {ticks:{color:"#94a3b8", maxTicksLimit: 8}, grid:{color:"rgba(148,163,184,.12)"}},
+            y: {ticks:{color:"#94a3b8"}, grid:{color:"rgba(148,163,184,.12)"}}
+          }
+        }
+      });
+    }
+
+    async function main(){
+      const latest = await loadJSON("data/latest.json");
+      document.getElementById("lastBacktest").textContent = "Last backtest date: " + (latest.last_backtest_date || "—");
+      document.getElementById("lastUpdated").textContent =
+        "Updated: " + (latest.updated_at ? String(latest.updated_at).replace("T"," ").replace("Z"," UTC") : "—");
+
+      const csv = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
+      const labels = csv.rows.map(r => r.date);
+
+      const series = pickSeries(csv.headers);
+
+      // Equity chart
+      const eqDatasets = series.map(s => ({
+        label: s.label,
+        data: csv.rows.map(r => Number(r[s.key])),
+        tension: 0.12, pointRadius: 0, borderWidth: 2
+      }));
+      makeLineChart("eqChart", labels, eqDatasets);
+
+      // Drawdown chart (computed)
+      const ddDatasets = series.map(s => {
+        const eqArr = csv.rows.map(r => Number(r[s.key]));
+        const ddArr = computeDrawdown(eqArr);
+        return { label: s.label, data: ddArr, tension: 0.12, pointRadius: 0, borderWidth: 2 };
+      });
+      makeLineChart("ddChart", labels, ddDatasets);
+
+      // Rolling 12M return (computed)
+      const rollDatasets = series.map(s => {
+        const eqArr = csv.rows.map(r => Number(r[s.key]));
+        const rr = computeRollingReturn(eqArr, 252);
+        return { label: s.label, data: rr, tension: 0.12, pointRadius: 0, borderWidth: 2 };
+      });
+      makeLineChart("rollChart", labels, rollDatasets);
+    }
+
+    main().catch(err => {
+      console.error(err);
+      document.body.innerHTML = "<div class='wrap'><div class='card'>Error loading data. Check docs/data file names.</div></div>";
+    });
+  </script>
+</body>
+</html>

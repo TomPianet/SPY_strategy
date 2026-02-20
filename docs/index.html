@@ -19,6 +19,7 @@
       <div class="navlinks">
         <a class="active" href="index.html">Home</a>
         <a href="results.html">Results</a>
+        <a href="visuals.html">Visuals</a>
         <a href="methodology.html">Methodology</a>
       </div>
     </nav>
@@ -98,124 +99,6 @@
       </div>
     </section>
 
-    <header class="hero">
-      <div>
-        <div class="pills">
-          <span class="pill" id="pillBacktest">Backtest: —</span>
-          <span class="pill" id="pillSample">Sample: —</span>
-        </div>
-      </div>
-    </header>
-
-    <section class="grid">
-      <div class="card">
-        <h2>Next week allocation</h2>
-        <div class="small" id="recoAsOf">As of: —</div>
-
-        <div class="tableWrap">
-          <table>
-            <thead>
-              <tr><th>Asset</th><th class="right">Weight</th></tr>
-            </thead>
-            <tbody id="weightsBody"></tbody>
-          </table>
-        </div>
-
-        <div class="small" id="recoFlags" style="margin-top:10px"></div>
-      </div>
-
-      <div class="card">
-        <h2>YTD performance</h2>
-        <div class="small">Year-to-date returns (current year).</div>
-
-        <div class="kpis" style="margin-top:12px">
-          <div class="kpi">
-            <div class="kpiLabel">Strategy (Net)</div>
-            <div class="kpiValue" id="ytdStrategy">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpiLabel">SPY Buy & Hold</div>
-            <div class="kpiValue" id="ytdSPY">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpiLabel">SPY 1.3x (Net)</div>
-            <div class="kpiValue" id="ytd13">—</div>
-          </div>
-          <div class="kpi">
-            <div class="kpiLabel">SPY 2.0x (Net)</div>
-            <div class="kpiValue" id="ytd20">—</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Long-run results (net of costs + financing)</h2>
-      <div class="small">
-        Metrics below are shown for three samples: <b>FULL</b>, <b>TRADABLE</b>, and <b>OOS</b>.
-      </div>
-
-      <div class="blockTitle">FULL SAMPLE</div>
-      <div class="small" id="fullRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="fullBody"></tbody>
-        </table>
-      </div>
-
-      <div class="blockTitle">TRADABLE SAMPLE</div>
-      <div class="small" id="tradRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="tradBody"></tbody>
-        </table>
-      </div>
-
-      <div class="blockTitle">OUT-OF-SAMPLE (2015–2025)</div>
-      <div class="small" id="oosRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="oosBody"></tbody>
-        </table>
-      </div>
-
-      <div class="footer muted">
-        To update: run Colab → export files → replace files in <span class="mono">docs/data/</span> → commit/push.
-      </div>
-    </section>
   </div>
 
   <script type="module">
@@ -229,7 +112,6 @@
       if (!Number.isFinite(n)) return "—";
       return n.toFixed(2);
     };
-    const esc = (s) => String(s).replaceAll("_", " ");
 
     async function loadJSON(path){
       const r = await fetch(path, {cache:"no-store"});
@@ -254,91 +136,6 @@
         return obj;
       });
       return {headers, rows};
-    }
-
-    function renderWeights(reco){
-      document.getElementById("recoAsOf").textContent = "As of: " + (reco.as_of || "—");
-      const w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
-
-      const body = document.getElementById("weightsBody");
-      body.innerHTML = "";
-      ["SPY","TLT","GLD","BIL"].forEach(a => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="mono">${a}</td>
-          <td class="right mono">${(Number(w[a]) * 100).toFixed(2)}%</td>
-        `;
-        body.appendChild(tr);
-      });
-
-      const levOn = !!reco.leverage;
-      const cls = levOn ? "tag warn" : "tag good";
-      const risky = (reco.risky_gross !== undefined) ? Number(reco.risky_gross).toFixed(4) : "—";
-
-      document.getElementById("recoFlags").innerHTML = `
-        <span class="${cls}">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
-        <span class="muted"> • risky gross: <span class="mono">${risky}x</span></span>
-      `;
-    }
-
-    function renderYTD(summary){
-      const s = summary || {};
-      document.getElementById("ytdStrategy").textContent = fmtPct(s.Strategy_Net?.YTD);
-      document.getElementById("ytdSPY").textContent      = fmtPct(s.BuyHold_SPY?.YTD);
-      document.getElementById("ytd13").textContent       = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
-      document.getElementById("ytd20").textContent       = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
-    }
-
-    function renderBlock(rows, blockName, tbodyId, rangeId){
-      const order = [
-        "Strategy_Net",
-        "BuyHold_SPY",
-        "BuyHold_50TLT_50GLD",
-        "BuyHold_SPY_1.3x_Net",
-        "BuyHold_SPY_2.0x_Net"
-      ];
-
-      const sub = rows.filter(r => r.Block === blockName);
-      console.log(`renderBlock(${blockName}): found ${sub.length} rows`);
-      
-      if(sub.length === 0) {
-        console.warn(`No rows found for block: ${blockName}`);
-        return;
-      }
-
-      // If your CSV has Start/End columns later, we can display them.
-      // For now: show block label only.
-      const rangeEl = document.getElementById(rangeId);
-      if(rangeEl) rangeEl.textContent = "";
-
-      const tbody = document.getElementById(tbodyId);
-      if(!tbody) {
-        console.error(`Table body not found: ${tbodyId}`);
-        return;
-      }
-      tbody.innerHTML = "";
-
-      order.forEach(name => {
-        const r = sub.find(x => x.Series === name);
-        if(!r) {
-          console.log(`Series ${name} not found in ${blockName}`);
-          return;
-        }
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="mono">${esc(name)}</td>
-          <td class="right mono">${fmtPct(r.CAGR)}</td>
-          <td class="right mono">${fmtPct(r.Vol)}</td>
-          <td class="right mono">${fmtNum(r.Sharpe)}</td>
-          <td class="right mono">${fmtNum(r.Sortino)}</td>
-          <td class="right mono">${fmtPct(r.MaxDD)}</td>
-          <td class="right mono">${fmtNum(r.Calmar)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      
-      console.log(`Rendered ${tbody.children.length} rows for ${blockName}`);
     }
 
     function renderStats(summary, metricsRows){
@@ -372,17 +169,9 @@
     async function main(){
       try {
         const latest = await loadJSON("data/latest.json");
-        document.getElementById("pillBacktest").textContent =
-          "Backtest: " + (latest.last_backtest_date || "—");
-        document.getElementById("pillSample").textContent =
-          "Sample: " + (latest.sample_used_for_metrics || "—");
-
-        renderWeights(latest.recommendation || {});
-        renderYTD(latest.summary || {});
-
+        
         // Metrics blocks from metrics CSV
         const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
-        console.log("Loaded CSV:", metrics.rows.length, "rows");
         
         const rows = metrics.rows.map(r => ({
           Block: (r.Block || "").trim(),
@@ -395,25 +184,15 @@
           Calmar: r.Calmar ? Number(r.Calmar) : null
         }));
 
-        console.log("Processed rows:", rows.length);
-        console.log("Sample row:", rows[0]);
-
         // Render stats bar with real data
         renderStats(latest.summary, rows);
-
-        renderBlock(rows, "FULL_SAMPLE", "fullBody", "fullRange");
-        renderBlock(rows, "TRADABLE_SAMPLE", "tradBody", "tradRange");
-        renderBlock(rows, "OOS_SAMPLE_2015_2025", "oosBody", "oosRange");
       } catch(err) {
         console.error("Error in main:", err);
-        document.getElementById("pillBacktest").textContent = "Error loading data";
-        throw err;
       }
     }
 
     main().catch(err => {
       console.error("Fatal error:", err);
-      document.getElementById("pillBacktest").textContent = "Error loading data";
     });
   </script>
 </body>
