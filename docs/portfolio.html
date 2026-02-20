@@ -383,11 +383,9 @@
           `${fmtCurrency(spyStart)} → ${fmtCurrency(spyEnd)} (${fmtCurrency(spyPnl)})`;
       }
       
-      // KPI cards
-      document.getElementById("ytdStrategy").textContent = fmtPct(s.Strategy_Net?.YTD);
-      document.getElementById("ytdSPY").textContent = fmtPct(s.BuyHold_SPY?.YTD);
-      document.getElementById("ytd13").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
-      document.getElementById("ytd20").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
+      // Additional strategy displays in main card
+      document.getElementById("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
+      document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
     }
 
     function renderMetrics(extras){
