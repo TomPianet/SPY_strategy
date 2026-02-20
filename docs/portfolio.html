@@ -234,15 +234,20 @@
       const ctx = canvas.getContext("2d");
       if(!ctx) {
         console.error("Could not get canvas context");
+        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Could not initialize chart canvas.</div>';
         return;
       }
 
       if(typeof Chart === 'undefined') {
         console.error("Chart.js not loaded");
+        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart.js library not loaded. Please refresh the page.</div>';
         return;
       }
 
-      new Chart(ctx, {
+      console.log("Creating chart with", ytdRows.length, "data points");
+      
+      try {
+        new Chart(ctx, {
         type: "line",
         data: {
           labels: labels,
