@@ -27,54 +27,60 @@
     </nav>
 
     <!-- Header Section -->
-    <section style="margin-top: 24px; margin-bottom: 32px;">
-      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Risk Management</h1>
-      <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Rolling volatility, drawdown, and risk-adjusted return analysis.</p>
+    <section style="margin-top: 32px; margin-bottom: 40px;">
+      <h1 style="font-size: 36px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.03em; font-family: 'Inter', sans-serif; line-height: 1.2;">Risk Management</h1>
+      <p style="font-size: 15px; color: var(--muted); margin: 0; line-height: 1.6; font-weight: 400;">Rolling volatility, drawdown, and risk-adjusted return analysis.</p>
     </section>
 
     <!-- Volatility Chart -->
-    <section class="card" style="margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Volatility</h2>
-      <div class="small" style="margin-bottom: 24px; font-size: 11px;">30-day (thin) and 252-day (thick) annualized volatility.</div>
-      <div style="position: relative; height: 320px; width: 100%;">
+    <section class="card" style="margin-bottom: 32px; padding: 28px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Rolling Volatility</h2>
+        <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">30-day (thin) and 252-day (thick) annualized volatility.</div>
+      </div>
+      <div style="position: relative; height: 360px; width: 100%;">
         <canvas id="volChart"></canvas>
       </div>
     </section>
 
     <!-- Max Drawdown Chart -->
-    <section class="card" style="margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Max Drawdown</h2>
-      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Trailing 252-day maximum drawdown — lower is worse.</div>
-      <div style="position: relative; height: 320px; width: 100%;">
+    <section class="card" style="margin-bottom: 32px; padding: 28px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Rolling Max Drawdown</h2>
+        <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Trailing 252-day maximum drawdown — lower is worse.</div>
+      </div>
+      <div style="position: relative; height: 360px; width: 100%;">
         <canvas id="ddChart"></canvas>
       </div>
     </section>
 
     <!-- Sharpe Ratio Chart -->
-    <section class="card" style="margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Sharpe Ratio</h2>
-      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Trailing 252-day risk-adjusted return — higher is better.</div>
-      <div style="position: relative; height: 320px; width: 100%;">
+    <section class="card" style="margin-bottom: 32px; padding: 28px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Rolling Sharpe Ratio</h2>
+        <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Trailing 252-day risk-adjusted return — higher is better.</div>
+      </div>
+      <div style="position: relative; height: 360px; width: 100%;">
         <canvas id="sharpeChart"></canvas>
       </div>
     </section>
 
     <!-- Legend -->
-    <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 24px 16px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-green);"></span>
+    <div style="margin-top: 32px; padding: 20px; background: hsl(220 18% 8% / 0.5); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 24px 20px; backdrop-filter: blur(4px);">
+      <span style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-green); border-radius: 2px;"></span>
         Strategy
       </span>
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 16px; height: 2px; background: var(--muted);"></span>
+      <span style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 20px; height: 3px; background: var(--muted); border-radius: 2px;"></span>
         SPY B&H
       </span>
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-cyan); opacity: 0.5;"></span>
+      <span style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-cyan); opacity: 0.6; border-radius: 2px;"></span>
         SPY 1.3x
       </span>
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-red); opacity: 0.5;"></span>
+      <span style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-red); opacity: 0.6; border-radius: 2px;"></span>
         SPY 2.0x
       </span>
     </div>
@@ -283,47 +289,62 @@
                 return idx >= 0 ? v * 100 : null;
               }).filter(v => v !== null),
               borderColor: "hsl(142 72% 45%)",
-              borderWidth: 1,
-              borderDash: [3, 2],
+              backgroundColor: "hsl(142 72% 45% / 0.05)",
+              borderWidth: 1.5,
+              borderDash: [4, 3],
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "Strategy 252d",
               data: vol252Agg.values.map(v => v * 100),
               borderColor: "hsl(142 72% 45%)",
-              borderWidth: 2.5,
+              backgroundColor: "hsl(142 72% 45% / 0.08)",
+              borderWidth: 3,
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 5,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY B&H 252d",
               data: spyVol252Agg.values.map(v => v * 100),
               borderColor: "hsl(215 12% 50%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY 1.3x 252d",
               data: spy13Vol252Agg.values.map(v => v * 100),
               borderColor: "hsl(187 80% 52%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             },
             {
               label: "SPY 2.0x 252d",
               data: spy20Vol252Agg.values.map(v => v * 100),
               borderColor: "hsl(0 72% 55%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             }
           ]
         },
@@ -336,14 +357,17 @@
               display: false
             },
             tooltip: {
-              backgroundColor: "hsl(220 18% 10% / 0.95)",
+              backgroundColor: "hsl(220 18% 10% / 0.98)",
               borderColor: "hsl(220 14% 18%)",
               borderWidth: 1,
-              padding: 10,
+              borderRadius: 8,
+              padding: 12,
               titleColor: "hsl(210 20% 92%)",
               bodyColor: "hsl(210 20% 92%)",
-              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
-              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
+              titleFont: {family: "'JetBrains Mono', monospace", size: 12, weight: 600},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 12},
+              displayColors: true,
+              boxPadding: 6,
               callbacks: {
                 label: (item) => {
                   const value = Number(item.raw);
@@ -359,8 +383,9 @@
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             },
             y: {
@@ -372,8 +397,9 @@
                 }
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             }
           }
@@ -391,38 +417,50 @@
               label: "Strategy",
               data: ddAgg.values.map(v => v * 100),
               borderColor: "hsl(142 72% 45%)",
-              borderWidth: 2.5,
+              backgroundColor: "hsl(142 72% 45% / 0.08)",
+              borderWidth: 3,
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 5,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY B&H",
               data: spyDDAgg.values.map(v => v * 100),
               borderColor: "hsl(215 12% 50%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY 1.3x",
               data: spy13DDAgg.values.map(v => v * 100),
               borderColor: "hsl(187 80% 52%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             },
             {
               label: "SPY 2.0x",
               data: spy20DDAgg.values.map(v => v * 100),
               borderColor: "hsl(0 72% 55%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             }
           ]
         },
@@ -435,14 +473,17 @@
               display: false
             },
             tooltip: {
-              backgroundColor: "hsl(220 18% 10% / 0.95)",
+              backgroundColor: "hsl(220 18% 10% / 0.98)",
               borderColor: "hsl(220 14% 18%)",
               borderWidth: 1,
-              padding: 10,
+              borderRadius: 8,
+              padding: 12,
               titleColor: "hsl(210 20% 92%)",
               bodyColor: "hsl(210 20% 92%)",
-              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
-              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
+              titleFont: {family: "'JetBrains Mono', monospace", size: 12, weight: 600},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 12},
+              displayColors: true,
+              boxPadding: 6,
               callbacks: {
                 label: (item) => {
                   const value = Number(item.raw);
@@ -458,8 +499,9 @@
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             },
             y: {
@@ -471,8 +513,9 @@
                 }
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             }
           }
@@ -490,38 +533,50 @@
               label: "Strategy",
               data: sharpeAgg.values,
               borderColor: "hsl(142 72% 45%)",
-              borderWidth: 2.5,
+              backgroundColor: "hsl(142 72% 45% / 0.08)",
+              borderWidth: 3,
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 5,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY B&H",
               data: spySharpeAgg.values,
               borderColor: "hsl(215 12% 50%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false
             },
             {
               label: "SPY 1.3x",
               data: spy13SharpeAgg.values,
               borderColor: "hsl(187 80% 52%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             },
             {
               label: "SPY 2.0x",
               data: spy20SharpeAgg.values,
               borderColor: "hsl(0 72% 55%)",
-              borderWidth: 1,
-              borderDash: [4, 2],
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
               pointRadius: 0,
-              tension: 0.4,
-              opacity: 0.5
+              pointHoverRadius: 4,
+              tension: 0.5,
+              fill: false,
+              opacity: 0.6
             }
           ]
         },
@@ -547,6 +602,9 @@
                   const value = Number(item.raw);
                   return `${item.dataset.label}: ${value.toFixed(2)}`;
                 }
+              },
+              animation: {
+                duration: 0
               }
             }
           },
@@ -557,8 +615,9 @@
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             },
             y: {
@@ -567,8 +626,9 @@
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
               }
             }
           }
