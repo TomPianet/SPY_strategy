@@ -27,9 +27,18 @@
 
     <!-- Header Section -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 7</h1>
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 8</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
+    </section>
+
+    <!-- Growth of $1,000 -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Growth of $1,000</h2>
+      <div class="small" style="margin-bottom: 16px; font-size: 11px;">If you invested $1,000 on Jan 3, 2026 — here's where you'd be today.</div>
+      <div id="growthTracker" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+        <!-- Will be populated by JavaScript -->
+      </div>
     </section>
 
     <!-- YTD Chart -->
@@ -394,6 +403,57 @@
       document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
     }
 
+    function renderGrowthTracker(summary, extras){
+      const s = summary || {};
+      const container = document.getElementById("growthTracker");
+      if(!container) return;
+
+      const initialInvestment = 1000;
+      
+      const strategies = [
+        { 
+          label: "Strategy", 
+          ytd: Number(s.Strategy_Net?.YTD) || 0,
+          color: "var(--trading-green)"
+        },
+        { 
+          label: "SPY B&H", 
+          ytd: Number(s.BuyHold_SPY?.YTD) || 0,
+          color: "var(--text)"
+        },
+        { 
+          label: "SPY 1.3x", 
+          ytd: Number(s["BuyHold_SPY_1.3x_Net"]?.YTD) || 0,
+          color: "var(--text)"
+        },
+        { 
+          label: "SPY 2.0x", 
+          ytd: Number(s["BuyHold_SPY_2.0x_Net"]?.YTD) || 0,
+          color: "var(--text)"
+        }
+      ];
+
+      container.innerHTML = strategies.map(item => {
+        const endValue = initialInvestment * (1 + item.ytd);
+        const diff = endValue - initialInvestment;
+        const isPositive = diff >= 0;
+        const valueColor = item.label === "Strategy" ? "var(--trading-green)" : (isPositive ? "var(--text)" : "var(--trading-red)");
+        const diffColor = isPositive ? "var(--trading-green)" : "var(--trading-red)";
+        
+        return `
+          <div style="text-align: center;">
+            <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px;">${item.label}</p>
+            <p style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${valueColor}; margin: 0 0 4px;">
+              ${fmtCurrency(endValue)}
+            </p>
+            <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: ${diffColor}; margin: 0;">
+              ${isPositive ? "+" : ""}${fmtCurrency(diff)}
+            </p>
+          </div>
+        `;
+      }).join("");
+    }
+
     function renderMetrics(extras){
       const e = extras?.series?.["Strategy (Net)"] || {};
       
@@ -434,6 +494,7 @@
         
         renderAllocation(latest.recommendation || {});
         renderYTD(latest.summary || {}, extras);
+        renderGrowthTracker(latest.summary || {}, extras);
         
         // Wait for Chart.js to be available, then render chart
         const renderChart = () => {
