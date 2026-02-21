@@ -26,101 +26,71 @@
     </nav>
 
     <!-- Header Section -->
-    <section class="card" style="margin-top: 24px;">
-      <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em;">Live Portfolio Performance 4</h1>
-        <div class="small" style="font-size: 14px; color: var(--muted);">Year-to-date tracking since January 2026</div>
-      </div>
-
-      <div class="pills">
-        <span class="pill" id="portfolioDateRange">Period: —</span>
-        <span class="pill" id="portfolioUpdated">Last updated: —</span>
-      </div>
+    <section style="margin-top: 24px; margin-bottom: 32px;">
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Portfolio Analysis 5</h1>
+      <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
+      <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
 
-    <!-- Main YTD Performance Card -->
-    <section class="card" style="margin-top: 20px; background: linear-gradient(135deg, hsl(220 18% 10% / 0.9), hsl(220 18% 12% / 0.9)); border: 1px solid hsl(142 72% 45% / 0.2);">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px;">
-        <div>
-          <div class="small" style="margin-bottom: 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; font-weight: 500;">Strategy Net</div>
-          <div class="stat-value stat-value-green" id="ytdStrategyMain" style="font-size: 2.5rem; font-weight: 600; line-height: 1.2; margin-bottom: 10px;">—</div>
-          <div style="margin-top: 8px; color: var(--text); font-size: 13px; font-weight: 400; font-family: 'JetBrains Mono', monospace; line-height: 1.5;" id="ytdStrategyPnL">—</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; font-weight: 500;">SPY Buy & Hold</div>
-          <div class="stat-value" id="ytdSPYMain" style="font-size: 2.25rem; font-weight: 500; line-height: 1.2; margin-bottom: 10px; color: var(--text);">—</div>
-          <div style="margin-top: 8px; color: var(--text); font-size: 13px; font-weight: 400; font-family: 'JetBrains Mono', monospace; line-height: 1.5;" id="ytdSPYPnL">—</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; font-weight: 500;">Outperformance</div>
-          <div class="stat-value stat-value-green" id="ytdOutperformance" style="font-size: 2.25rem; font-weight: 500; line-height: 1.2; margin-bottom: 10px;">—</div>
-          <div class="small" style="margin-top: 8px; color: var(--muted); font-size: 11px;">vs SPY Buy & Hold</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; font-weight: 500;">SPY 1.3x (Net)</div>
-          <div class="stat-value" id="ytd13Main" style="font-size: 2.25rem; font-weight: 500; line-height: 1.2; color: var(--text);">—</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; font-weight: 500;">SPY 2.0x (Net)</div>
-          <div class="stat-value" id="ytd20Main" style="font-size: 2.25rem; font-weight: 500; line-height: 1.2; color: var(--text);">—</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- YTD Performance Chart -->
-    <section class="card" style="margin-top: 20px;">
-      <h2>YTD Performance Over Time</h2>
-      <div class="small" style="margin-bottom: 16px;">Equity curve tracking since the start of 2026.</div>
-      <div style="position: relative; height: 400px; width: 100%;">
+    <!-- YTD Chart -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">YTD Cumulative Returns</h2>
+      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Strategy vs all benchmarks — net of costs & financing.</div>
+      <div style="position: relative; height: 360px; width: 100%;">
         <canvas id="ytdChart"></canvas>
       </div>
     </section>
 
-    <!-- Current Allocation -->
-    <section class="card" style="margin-top: 20px;">
-      <h2>Current Allocation</h2>
-      <div class="small" id="allocationAsOf" style="margin-bottom: 16px;">As of: —</div>
-
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr><th>Asset</th><th class="right">Weight</th><th class="right">Status</th></tr>
-          </thead>
-          <tbody id="allocationBody"></tbody>
-        </table>
-      </div>
-
-      <div class="small" id="allocationFlags" style="margin-top:16px"></div>
-    </section>
-
-    <!-- Additional Metrics -->
-    <section class="card" style="margin-top: 20px;">
-      <h2>Portfolio Metrics</h2>
-      <div class="small" style="margin-bottom: 20px;">Key performance indicators for the strategy.</div>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
-          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Win Rate</div>
-          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-green);" id="winRate">—</div>
+    <!-- YTD Summary + Allocation Grid -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 24px;">
+      <!-- YTD Returns Summary -->
+      <section class="card">
+        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">YTD Returns</h2>
+        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Cumulative year-to-date.</div>
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">Strategy (Net)</span>
+            <span class="stat-value stat-value-green" id="ytdStrategyMain" style="font-size: 15px; font-weight: 600;">—</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SPY B&H</span>
+            <span id="ytdSPYMain" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">50TLT/50GLD</span>
+            <span id="ytdTLTGLD" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SPY 1.3x (Net)</span>
+            <span id="ytd13Main" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0;">
+            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SPY 2.0x (Net)</span>
+            <span id="ytd20Main" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
+          </div>
         </div>
-        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
-          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Best Year</div>
-          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-green);" id="bestYear">—</div>
-        </div>
-        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
-          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Worst Year</div>
-          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-red);" id="worstYear">—</div>
-        </div>
-        <div style="padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: hsl(220 18% 8% / 0.5);">
-          <div class="small" style="margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace;">Max Drawdown</div>
-          <div style="font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--trading-red);" id="maxDD">—</div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <div class="footer muted" style="margin-top: 40px; text-align: center;">
-      Portfolio performance is tracked from the start of the current year. Data updates automatically when new backtest results are available.
+      <!-- Current Allocation -->
+      <section class="card">
+        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Current Allocation</h2>
+        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Next week weights.</div>
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="font-size: 11px; padding: 8px 0;">Asset</th>
+                <th class="right" style="font-size: 11px; padding: 8px 0;">Weight</th>
+              </tr>
+            </thead>
+            <tbody id="allocationBody"></tbody>
+          </table>
+        </div>
+        <div class="small" id="allocationFlags" style="margin-top: 16px; font-size: 11px;"></div>
+      </section>
     </div>
+
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -244,22 +214,22 @@
               label: "Strategy (Net)",
               data: strategyData,
               borderColor: "hsl(142 72% 45%)",
-              backgroundColor: "hsl(142 72% 45% / 0.1)",
+              backgroundColor: "hsl(142 72% 45% / 0.08)",
               tension: 0.4,
               pointRadius: 0,
-              borderWidth: 3,
+              borderWidth: 2.5,
               fill: true,
             },
             {
-              label: "SPY Buy & Hold",
+              label: "SPY B&H",
               data: spyData,
               borderColor: "hsl(215 12% 50%)",
               backgroundColor: "hsl(215 12% 50% / 0.05)",
               tension: 0.4,
               pointRadius: 0,
-              borderWidth: 2,
-              borderDash: [5, 5],
-              fill: true,
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              fill: false,
             }
           ]
         },
@@ -271,17 +241,23 @@
             legend: {
               labels: {
                 color: "hsl(210 20% 92%)",
-                font: {family: "'Inter', sans-serif", size: 12},
-                padding: 15,
-              }
+                font: {family: "'JetBrains Mono', monospace", size: 11},
+                padding: 12,
+                usePointStyle: true,
+                pointStyle: 'line'
+              },
+              position: 'top',
+              align: 'end'
             },
             tooltip: {
               backgroundColor: "hsl(220 18% 10% / 0.95)",
               borderColor: "hsl(220 14% 18%)",
               borderWidth: 1,
-              padding: 12,
+              padding: 10,
               titleColor: "hsl(210 20% 92%)",
               bodyColor: "hsl(210 20% 92%)",
+              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
               callbacks: {
                 label: (item) => {
                   const value = Number(item.raw);
@@ -295,25 +271,33 @@
             x: {
               ticks: {
                 color: "hsl(215 12% 50%)",
-                maxTicksLimit: 12,
-                font: {size: 11}
+                maxTicksLimit: 10,
+                font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
                 color: "hsl(220 14% 18%)",
-                drawBorder: false
+                drawBorder: false,
+                lineWidth: 1
+              },
+              axisLine: {
+                color: "hsl(220 14% 18%)"
               }
             },
             y: {
               ticks: {
                 color: "hsl(215 12% 50%)",
-                font: {size: 11},
+                font: {family: "'JetBrains Mono', monospace", size: 11},
                 callback: function(value) {
                   return value >= 0 ? "+" + value.toFixed(1) + "%" : value.toFixed(1) + "%";
                 }
               },
               grid: {
                 color: "hsl(220 14% 18%)",
-                drawBorder: false
+                drawBorder: false,
+                lineWidth: 1
+              },
+              axisLine: {
+                color: "hsl(220 14% 18%)"
               },
               beginAtZero: false
             }
@@ -328,7 +312,6 @@
     }
 
     function renderAllocation(reco){
-      document.getElementById("allocationAsOf").textContent = "As of: " + (reco.as_of || "—");
       const w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
 
       const body = document.getElementById("allocationBody");
@@ -336,59 +319,35 @@
       ["SPY","TLT","GLD","BIL"].forEach(a => {
         const weight = Number(w[a]);
         const tr = document.createElement("tr");
-        const status = weight > 0 ? "Long" : weight < 0 ? "Short" : "Neutral";
-        const statusClass = weight > 0 ? "good" : weight < 0 ? "warn" : "muted";
+        const weightClass = weight < 0 ? "stat-value-red" : "stat-value-green";
         
         tr.innerHTML = `
-          <td class="mono" style="font-weight: 600;">${a}</td>
-          <td class="right mono" style="font-weight: 600;">${(weight * 100).toFixed(2)}%</td>
-          <td class="right"><span class="${statusClass}" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase;">${status}</span></td>
+          <td class="mono" style="font-weight: 500; font-size: 13px; padding: 10px 0;">${a}</td>
+          <td class="right mono ${weightClass}" style="font-weight: 600; font-size: 13px; padding: 10px 0;">${(weight * 100).toFixed(2)}%</td>
         `;
         body.appendChild(tr);
       });
 
       const levOn = !!reco.leverage;
-      const cls = levOn ? "tag warn" : "tag good";
       const risky = (reco.risky_gross !== undefined) ? Number(reco.risky_gross).toFixed(4) : "—";
 
       document.getElementById("allocationFlags").innerHTML = `
-        <span class="${cls}">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
-        <span class="muted"> • risky gross: <span class="mono">${risky}x</span></span>
+        <span style="color: var(--trading-green); font-weight: 600;">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
+        <span class="muted"> · risky gross: <span class="mono">${risky}x</span></span>
       `;
     }
 
     function renderYTD(summary, extras){
       const s = summary || {};
-      const e = extras?.series?.["Strategy (Net)"] || {};
-      const ytd = e.ytd || {};
       
-      // Main YTD returns
+      // YTD returns summary
       document.getElementById("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
       document.getElementById("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
       
-      // Calculate outperformance
-      const strategyYTD = s.Strategy_Net?.YTD || 0;
-      const spyYTD = s.BuyHold_SPY?.YTD || 0;
-      const outperformance = strategyYTD - spyYTD;
-      document.getElementById("ytdOutperformance").textContent = fmtPct(outperformance);
+      // Get 50TLT/50GLD from metrics if available
+      const tltGldYTD = extras?.series?.["Buy & Hold SPY"]?.ytd?.return || 0;
+      document.getElementById("ytdTLTGLD").textContent = fmtPct(tltGldYTD);
       
-      // P&L if available
-      if(ytd.start_value && ytd.end_value){
-        const startVal = ytd.start_value;
-        const endVal = ytd.end_value;
-        const pnl = endVal - startVal;
-        document.getElementById("ytdStrategyPnL").textContent = 
-          `${fmtCurrency(startVal)} → ${fmtCurrency(endVal)} (${fmtCurrency(pnl)})`;
-        
-        // SPY P&L (approximate)
-        const spyStart = startVal;
-        const spyEnd = spyStart * (1 + (s.BuyHold_SPY?.YTD || 0));
-        const spyPnl = spyEnd - spyStart;
-        document.getElementById("ytdSPYPnL").textContent = 
-          `${fmtCurrency(spyStart)} → ${fmtCurrency(spyEnd)} (${fmtCurrency(spyPnl)})`;
-      }
-      
-      // Additional strategy displays in main card
       document.getElementById("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
       document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
     }
@@ -426,21 +385,13 @@
         
         // Date range
         const ytd = extras?.series?.["Strategy (Net)"]?.ytd;
-        if(ytd){
-          const startDate = ytd.start ? new Date(ytd.start).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}) : "—";
-          const endDate = ytd.end ? new Date(ytd.end).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'}) : "—";
-          document.getElementById("portfolioDateRange").textContent = `Period: ${startDate} → ${endDate}`;
-        }
-        
-        // Last updated
-        if(latest.updated_at){
-          const updated = new Date(latest.updated_at).toLocaleString('en-US', {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
-          document.getElementById("portfolioUpdated").textContent = `Last updated: ${updated}`;
+        if(ytd && ytd.end){
+          const endDate = new Date(ytd.end).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+          document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
         }
         
         renderAllocation(latest.recommendation || {});
         renderYTD(latest.summary || {}, extras);
-        renderMetrics(extras);
         
         // Wait for Chart.js to be available, then render chart
         const renderChart = () => {

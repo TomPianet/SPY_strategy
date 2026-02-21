@@ -410,6 +410,10 @@ hr.sep{border:none; border-top:1px solid var(--border); margin:12px 0}
   color: var(--trading-red);
 }
 
+.stat-value-green {
+  color: var(--trading-green);
+}
+
 /* Animations */
 @keyframes fade-in {
   from {
