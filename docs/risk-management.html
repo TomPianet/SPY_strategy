@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SPY Strategy — Risk Management</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <div class="brand">
+        <div class="logo"><img src="assets/images/logo.png" alt="SPY Strategy Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;"></div>
+        <div>
+          <div class="brandTitle">SPY Timing + Allocation</div>
+          <div class="brandSub">Risk Management</div>
+        </div>
+      </div>
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="results.html">Results</a>
+        <a href="visuals.html">Visuals</a>
+        <a class="active" href="risk-management.html">Risk</a>
+        <a href="methodology.html">Methodology</a>
+      </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section style="margin-top: 24px; margin-bottom: 32px;">
+      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Risk Management</h1>
+      <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Rolling volatility, drawdown, and risk-adjusted return analysis.</p>
+    </section>
+
+    <!-- Volatility Chart -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Volatility</h2>
+      <div class="small" style="margin-bottom: 24px; font-size: 11px;">30-day (thin) and 252-day (thick) annualized volatility.</div>
+      <div style="position: relative; height: 320px; width: 100%;">
+        <canvas id="volChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Max Drawdown Chart -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Max Drawdown</h2>
+      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Trailing 252-day maximum drawdown — lower is worse.</div>
+      <div style="position: relative; height: 320px; width: 100%;">
+        <canvas id="ddChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Sharpe Ratio Chart -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Rolling Sharpe Ratio</h2>
+      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Trailing 252-day risk-adjusted return — higher is better.</div>
+      <div style="position: relative; height: 320px; width: 100%;">
+        <canvas id="sharpeChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Legend -->
+    <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 24px 16px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-green);"></span>
+        Strategy
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 16px; height: 2px; background: var(--muted);"></span>
+        SPY B&H
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-cyan); opacity: 0.5;"></span>
+        SPY 1.3x
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 16px; height: 2px; background: var(--trading-red); opacity: 0.5;"></span>
+        SPY 2.0x
+      </span>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module">
+    async function loadJSON(path){
+      const r = await fetch(path, {cache:"no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      return await r.json();
+    }
+
+    async function loadCSV(path){
+      const r = await fetch(path, {cache:"no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      const text = await r.text();
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+      if(lines.length === 0) return {headers: [], rows: []};
+      
+      const headers = lines[0].split(",").map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const parts = line.split(",").map(p => p.trim());
+        const obj = {};
+        headers.forEach((h,i)=> obj[h] = parts[i] || "");
+        return obj;
+      });
+      return {headers, rows};
+    }
+
+    // Compute daily returns from equity curve
+    function computeReturns(eqArr){
+      const returns = [null];
+      for(let i = 1; i < eqArr.length; i++){
+        if(eqArr[i-1] > 0 && eqArr[i] > 0){
+          returns.push((eqArr[i] / eqArr[i-1]) - 1);
+        } else {
+          returns.push(null);
+        }
+      }
+      return returns;
+    }
+
+    // Compute rolling volatility (annualized)
+    function computeRollingVolatility(returns, window){
+      const vol = new Array(returns.length).fill(null);
+      for(let i = window; i < returns.length; i++){
+        const windowReturns = returns.slice(i - window, i).filter(r => r !== null);
+        if(windowReturns.length < window * 0.8) continue; // Need at least 80% of data
+        
+        const mean = windowReturns.reduce((a,b) => a + b, 0) / windowReturns.length;
+        const variance = windowReturns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / windowReturns.length;
+        const stdDev = Math.sqrt(variance);
+        vol[i] = stdDev * Math.sqrt(252); // Annualize
+      }
+      return vol;
+    }
+
+    // Compute rolling max drawdown
+    function computeRollingMaxDD(eqArr, window){
+      const maxDD = new Array(eqArr.length).fill(null);
+      for(let i = window; i < eqArr.length; i++){
+        const windowEq = eqArr.slice(i - window, i + 1);
+        let peak = -Infinity;
+        let maxDrawdown = 0;
+        for(let j = 0; j < windowEq.length; j++){
+          peak = Math.max(peak, windowEq[j]);
+          const dd = (windowEq[j] / peak) - 1;
+          maxDrawdown = Math.min(maxDrawdown, dd);
+        }
+        maxDD[i] = maxDrawdown;
+      }
+      return maxDD;
+    }
+
+    // Compute rolling Sharpe ratio (assuming risk-free rate = 0)
+    function computeRollingSharpe(returns, window){
+      const sharpe = new Array(returns.length).fill(null);
+      for(let i = window; i < returns.length; i++){
+        const windowReturns = returns.slice(i - window, i).filter(r => r !== null);
+        if(windowReturns.length < window * 0.8) continue;
+        
+        const mean = windowReturns.reduce((a,b) => a + b, 0) / windowReturns.length;
+        const variance = windowReturns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / windowReturns.length;
+        const stdDev = Math.sqrt(variance);
+        const annualizedReturn = mean * 252;
+        const annualizedVol = stdDev * Math.sqrt(252);
+        
+        if(annualizedVol > 0){
+          sharpe[i] = annualizedReturn / annualizedVol;
+        }
+      }
+      return sharpe;
+    }
+
+    // Aggregate data by year for cleaner display
+    function aggregateByYear(labels, data){
+      const yearData = {};
+      labels.forEach((label, i) => {
+        const year = String(label).substring(0, 4);
+        if(!yearData[year]){
+          yearData[year] = {values: [], indices: []};
+        }
+        if(data[i] !== null){
+          yearData[year].values.push(data[i]);
+          yearData[year].indices.push(i);
+        }
+      });
+      
+      const yearLabels = [];
+      const yearValues = [];
+      Object.keys(yearData).sort().forEach(year => {
+        const vals = yearData[year].values;
+        if(vals.length > 0){
+          yearLabels.push(year);
+          // Use last value of the year
+          const lastIdx = yearData[year].indices[yearData[year].indices.length - 1];
+          yearValues.push(data[lastIdx]);
+        }
+      });
+      return {labels: yearLabels, values: yearValues};
+    }
+
+    async function main(){
+      try {
+        const equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
+        
+        // Wait for Chart.js
+        const waitForChart = () => {
+          if(typeof Chart === 'undefined'){
+            setTimeout(waitForChart, 100);
+            return;
+          }
+          renderCharts(equityCSV);
+        };
+        waitForChart();
+      } catch(err) {
+        console.error("Error loading data:", err);
+      }
+    }
+
+    function renderCharts(equityCSV){
+      const rows = equityCSV.rows;
+      
+      // Get equity arrays
+      const strategyEq = rows.map(r => Number(r.Strategy_Net_Eq) || 0);
+      const spyEq = rows.map(r => Number(r.BuyHold_SPY_Eq) || 0);
+      const spy13Eq = rows.map(r => Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || 0);
+      const spy20Eq = rows.map(r => Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || 0);
+      
+      // Compute returns
+      const strategyReturns = computeReturns(strategyEq);
+      const spyReturns = computeReturns(spyEq);
+      const spy13Returns = computeReturns(spy13Eq);
+      const spy20Returns = computeReturns(spy20Eq);
+      
+      // Compute metrics
+      const strategyVol30 = computeRollingVolatility(strategyReturns, 30);
+      const strategyVol252 = computeRollingVolatility(strategyReturns, 252);
+      const spyVol30 = computeRollingVolatility(spyReturns, 30);
+      const spyVol252 = computeRollingVolatility(spyReturns, 252);
+      const spy13Vol252 = computeRollingVolatility(spy13Returns, 252);
+      const spy20Vol252 = computeRollingVolatility(spy20Returns, 252);
+      
+      const strategyMaxDD = computeRollingMaxDD(strategyEq, 252);
+      const spyMaxDD = computeRollingMaxDD(spyEq, 252);
+      const spy13MaxDD = computeRollingMaxDD(spy13Eq, 252);
+      const spy20MaxDD = computeRollingMaxDD(spy20Eq, 252);
+      
+      const strategySharpe = computeRollingSharpe(strategyReturns, 252);
+      const spySharpe = computeRollingSharpe(spyReturns, 252);
+      const spy13Sharpe = computeRollingSharpe(spy13Returns, 252);
+      const spy20Sharpe = computeRollingSharpe(spy20Returns, 252);
+      
+      // Aggregate by year for display
+      const labels = rows.map(r => r.date);
+      const vol30Agg = aggregateByYear(labels, strategyVol30);
+      const vol252Agg = aggregateByYear(labels, strategyVol252);
+      const spyVol252Agg = aggregateByYear(labels, spyVol252);
+      const spy13Vol252Agg = aggregateByYear(labels, spy13Vol252);
+      const spy20Vol252Agg = aggregateByYear(labels, spy20Vol252);
+      
+      const ddAgg = aggregateByYear(labels, strategyMaxDD);
+      const spyDDAgg = aggregateByYear(labels, spyMaxDD);
+      const spy13DDAgg = aggregateByYear(labels, spy13MaxDD);
+      const spy20DDAgg = aggregateByYear(labels, spy20MaxDD);
+      
+      const sharpeAgg = aggregateByYear(labels, strategySharpe);
+      const spySharpeAgg = aggregateByYear(labels, spySharpe);
+      const spy13SharpeAgg = aggregateByYear(labels, spy13Sharpe);
+      const spy20SharpeAgg = aggregateByYear(labels, spy20Sharpe);
+      
+      // Volatility Chart
+      const volCtx = document.getElementById("volChart").getContext("2d");
+      new Chart(volCtx, {
+        type: "line",
+        data: {
+          labels: vol252Agg.labels,
+          datasets: [
+            {
+              label: "Strategy 30d",
+              data: vol30Agg.values.map((v, i) => {
+                const year = vol30Agg.labels[i];
+                const idx = vol252Agg.labels.indexOf(year);
+                return idx >= 0 ? v * 100 : null;
+              }).filter(v => v !== null),
+              borderColor: "hsl(142 72% 45%)",
+              borderWidth: 1,
+              borderDash: [3, 2],
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "Strategy 252d",
+              data: vol252Agg.values.map(v => v * 100),
+              borderColor: "hsl(142 72% 45%)",
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY B&H 252d",
+              data: spyVol252Agg.values.map(v => v * 100),
+              borderColor: "hsl(215 12% 50%)",
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY 1.3x 252d",
+              data: spy13Vol252Agg.values.map(v => v * 100),
+              borderColor: "hsl(187 80% 52%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            },
+            {
+              label: "SPY 2.0x 252d",
+              data: spy20Vol252Agg.values.map(v => v * 100),
+              borderColor: "hsl(0 72% 55%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {mode: "index", intersect: false},
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: "hsl(220 18% 10% / 0.95)",
+              borderColor: "hsl(220 14% 18%)",
+              borderWidth: 1,
+              padding: 10,
+              titleColor: "hsl(210 20% 92%)",
+              bodyColor: "hsl(210 20% 92%)",
+              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
+              callbacks: {
+                label: (item) => {
+                  const value = Number(item.raw);
+                  return `${item.dataset.label}: ${value.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11}
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            },
+            y: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11},
+                callback: function(value) {
+                  return value.toFixed(1) + "%";
+                }
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            }
+          }
+        }
+      });
+
+      // Max Drawdown Chart
+      const ddCtx = document.getElementById("ddChart").getContext("2d");
+      new Chart(ddCtx, {
+        type: "line",
+        data: {
+          labels: ddAgg.labels,
+          datasets: [
+            {
+              label: "Strategy",
+              data: ddAgg.values.map(v => v * 100),
+              borderColor: "hsl(142 72% 45%)",
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY B&H",
+              data: spyDDAgg.values.map(v => v * 100),
+              borderColor: "hsl(215 12% 50%)",
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY 1.3x",
+              data: spy13DDAgg.values.map(v => v * 100),
+              borderColor: "hsl(187 80% 52%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            },
+            {
+              label: "SPY 2.0x",
+              data: spy20DDAgg.values.map(v => v * 100),
+              borderColor: "hsl(0 72% 55%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {mode: "index", intersect: false},
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: "hsl(220 18% 10% / 0.95)",
+              borderColor: "hsl(220 14% 18%)",
+              borderWidth: 1,
+              padding: 10,
+              titleColor: "hsl(210 20% 92%)",
+              bodyColor: "hsl(210 20% 92%)",
+              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
+              callbacks: {
+                label: (item) => {
+                  const value = Number(item.raw);
+                  return `${item.dataset.label}: ${value.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11}
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            },
+            y: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11},
+                callback: function(value) {
+                  return value.toFixed(1) + "%";
+                }
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            }
+          }
+        }
+      });
+
+      // Sharpe Ratio Chart
+      const sharpeCtx = document.getElementById("sharpeChart").getContext("2d");
+      new Chart(sharpeCtx, {
+        type: "line",
+        data: {
+          labels: sharpeAgg.labels,
+          datasets: [
+            {
+              label: "Strategy",
+              data: sharpeAgg.values,
+              borderColor: "hsl(142 72% 45%)",
+              borderWidth: 2.5,
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY B&H",
+              data: spySharpeAgg.values,
+              borderColor: "hsl(215 12% 50%)",
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: "SPY 1.3x",
+              data: spy13SharpeAgg.values,
+              borderColor: "hsl(187 80% 52%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            },
+            {
+              label: "SPY 2.0x",
+              data: spy20SharpeAgg.values,
+              borderColor: "hsl(0 72% 55%)",
+              borderWidth: 1,
+              borderDash: [4, 2],
+              pointRadius: 0,
+              tension: 0.4,
+              opacity: 0.5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {mode: "index", intersect: false},
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: "hsl(220 18% 10% / 0.95)",
+              borderColor: "hsl(220 14% 18%)",
+              borderWidth: 1,
+              padding: 10,
+              titleColor: "hsl(210 20% 92%)",
+              bodyColor: "hsl(210 20% 92%)",
+              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
+              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
+              callbacks: {
+                label: (item) => {
+                  const value = Number(item.raw);
+                  return `${item.dataset.label}: ${value.toFixed(2)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11}
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            },
+            y: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: {family: "'JetBrains Mono', monospace", size: 11}
+              },
+              grid: {
+                color: "hsl(220 14% 18%)",
+                drawBorder: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    main().catch(err => {
+      console.error("Error:", err);
+    });
+  </script>
+</body>
+</html>
