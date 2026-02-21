@@ -27,7 +27,7 @@
 
     <!-- Header Section -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 6</h1>
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 7</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
@@ -168,6 +168,8 @@
       // Get starting values (first day of 2026) for each strategy separately
       const strategyStartValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
       const spyStartValue = Number(ytdRows[0]?.BuyHold_SPY_Eq) || 1;
+      const spy13StartValue = Number(ytdRows[0]?.["BuyHold_SPY_1.3x_Net_Eq"]) || 1;
+      const spy20StartValue = Number(ytdRows[0]?.["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
       
       console.log("Strategy start:", strategyStartValue, "SPY start:", spyStartValue);
       
@@ -185,6 +187,16 @@
       const spyData = ytdRows.map(r => {
         const value = Number(r.BuyHold_SPY_Eq) || spyStartValue;
         return ((value / spyStartValue) - 1) * 100;
+      });
+
+      const spy13Data = ytdRows.map(r => {
+        const value = Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || spy13StartValue;
+        return ((value / spy13StartValue) - 1) * 100;
+      });
+
+      const spy20Data = ytdRows.map(r => {
+        const value = Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || spy20StartValue;
+        return ((value / spy20StartValue) - 1) * 100;
       });
       
       console.log("First strategy return:", strategyData[0], "First SPY return:", spyData[0]);
@@ -216,7 +228,9 @@
               borderColor: "hsl(142 72% 45%)",
               backgroundColor: "hsl(142 72% 45% / 0.08)",
               tension: 0.4,
-              pointRadius: 0,
+              pointRadius: 3,
+              pointHoverRadius: 4,
+              pointBackgroundColor: "hsl(142 72% 45%)",
               borderWidth: 2.5,
               fill: true,
             },
@@ -226,7 +240,35 @@
               borderColor: "hsl(215 12% 50%)",
               backgroundColor: "hsl(215 12% 50% / 0.05)",
               tension: 0.4,
-              pointRadius: 0,
+              pointRadius: 3,
+              pointHoverRadius: 4,
+              pointBackgroundColor: "hsl(215 12% 50%)",
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              fill: false,
+            },
+            {
+              label: "SPY 1.3x",
+              data: spy13Data,
+              borderColor: "hsl(142 72% 55%)",
+              backgroundColor: "transparent",
+              tension: 0.4,
+              pointRadius: 3,
+              pointHoverRadius: 4,
+              pointBackgroundColor: "hsl(142 72% 55%)",
+              borderWidth: 1.5,
+              borderDash: [4, 2],
+              fill: false,
+            },
+            {
+              label: "SPY 2.0x",
+              data: spy20Data,
+              borderColor: "hsl(0 72% 55%)",
+              backgroundColor: "transparent",
+              tension: 0.4,
+              pointRadius: 3,
+              pointHoverRadius: 4,
+              pointBackgroundColor: "hsl(0 72% 55%)",
               borderWidth: 1.5,
               borderDash: [4, 2],
               fill: false,
