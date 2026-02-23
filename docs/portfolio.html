@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SPY Strategy — Portfolio Live 2</title>
+  <title>SPY Strategy — Portfolio Live 3</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <!-- Header -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Portfolio Live 2</h1>
+      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Portfolio Live 3</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance, $1,000 growth comparison, and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
@@ -112,26 +112,11 @@
       function el(id){ return document.getElementById(id); }
       function setText(id, val){ var e = el(id); if(e) e.textContent = val; }
 
-      function dataPath(name){
-        var path = window.location.pathname || "";
-        var dir = path.lastIndexOf("/") >= 0 ? path.slice(0, path.lastIndexOf("/") + 1) : "";
-        return dir + "data/" + name;
-      }
-      function fetchWithTimeout(url, opts, ms){
-        ms = ms || 12000;
-        var controller = new AbortController();
-        var timeout = setTimeout(function(){ controller.abort(); }, ms);
-        return fetch(url, Object.assign({}, opts || {}, { signal: controller.signal }))
-          .then(function(r){ clearTimeout(timeout); return r; })
-          .catch(function(e){ clearTimeout(timeout); throw e; });
-      }
       function loadJSON(path){
-        var url = path.indexOf("/") === 0 || path.indexOf("http") === 0 ? path : dataPath(path.replace(/^data\//, ""));
-        return fetchWithTimeout(url, {cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("Cannot load " + url); return r.json(); });
+        return fetch(path, {cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.json(); });
       }
       function loadCSV(path){
-        var url = path.indexOf("/") === 0 || path.indexOf("http") === 0 ? path : dataPath(path.replace(/^data\//, ""));
-        return fetchWithTimeout(url, {cache:"no-store"})
+        return fetch(path, {cache:"no-store"})
           .then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.text(); })
           .then(function(text){
             if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
@@ -290,7 +275,7 @@
         }).catch(function(err){
           setText("portfolioDateRange", "As of: —");
           var g = el("growthTracker");
-          if(g) g.innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">Data could not be loaded. Check the browser console (F12) for errors and that <span class=\"mono\">data/latest.json</span> is available at this URL.</p>";
+          if(g) g.innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">Could not load data. Check <span class=\"mono\">data/latest.json</span> and <span class=\"mono\">data/equity_curve_TURBO_phase7_BASE.csv</span>.</p>";
           var ph = el("ytdChartPlaceholder");
           if(ph) ph.textContent = "Chart data could not be loaded.";
           console.error("Portfolio data load failed:", err);
