@@ -28,7 +28,7 @@
 
     <!-- Header Section -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance</h1>
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 1</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
@@ -100,7 +100,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="module">
+  <script>
+    (function(){
     const fmtPct = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
@@ -117,23 +118,17 @@
       return "$" + n.toFixed(2);
     };
 
-    function dataUrl(path){
-      return new URL(path, document.baseURI || document.URL).href;
-    }
-
     async function loadJSON(path){
-      const url = path.startsWith("http") ? path : dataUrl(path);
-      const r = await fetch(url, {cache:"no-store"});
+      const r = await fetch(path, {cache:"no-store"});
       if(!r.ok) throw new Error("Cannot load " + path);
       return await r.json();
     }
 
     async function loadCSV(path){
-      const url = path.startsWith("http") ? path : dataUrl(path);
-      const r = await fetch(url, {cache:"no-store"});
+      const r = await fetch(path, {cache:"no-store"});
       if(!r.ok) throw new Error("Cannot load " + path);
       let text = await r.text();
-      if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
       if(lines.length === 0) return {headers: [], rows: []};
       
@@ -579,7 +574,10 @@
 
     main().catch(err => {
       console.error("Fatal error:", err);
+      var g = document.getElementById("growthTracker");
+      if(g) g.innerHTML = "<p style=\"color:var(--muted);font-size:13px;\">Error loading data: " + (err && err.message ? err.message : "unknown") + "</p>";
     });
+    })();
   </script>
 </body>
 </html>
