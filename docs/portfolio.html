@@ -28,7 +28,7 @@
 
     <!-- Header Section -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 8</h1>
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
@@ -380,7 +380,7 @@
       const rows = equityCSV?.rows || [];
       const currentYear = Number(ytdYear) || new Date().getFullYear();
       const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
-      if(ytdRows.length < 2) return null;
+      if(ytdRows.length < 1) return null;
       const first = ytdRows[0];
       const last = ytdRows[ytdRows.length - 1];
       const series = [
@@ -477,47 +477,91 @@
     }
 
     async function main(){
+      let latest = null;
+      let equityCSV = null;
       try {
-        const latest = await loadJSON("data/latest.json");
-        const equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
-        
-        // Date range from equity curve (last date in data)
-        const rows = equityCSV?.rows || [];
-        const lastRow = rows.filter(r => r.date).pop();
-        const ytdYear = lastRow?.date ? Number(String(lastRow.date).slice(0, 4)) : new Date().getFullYear();
-        if(lastRow?.date){
-          const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
-          document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
-        }
-        
-        renderAllocation(latest.recommendation || {});
-        
-        // YTD and Growth computed from equity curve (single source of truth)
-        const ytdFromEquity = computeYTDFromEquity(equityCSV, ytdYear);
-        renderYTD(ytdFromEquity);
-        renderGrowthTracker(ytdFromEquity);
-        
-        const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
-        if(ytdRows.length > 0){
-          const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
-          const descEl = document.getElementById("growthTrackerDesc");
-          if(descEl) descEl.textContent = `If you invested $1,000 on ${firstYtd} — here's where you'd be today.`;
-        }
-        
-        // Wait for Chart.js to be available, then render chart
-        const renderChart = () => {
-          if(typeof Chart !== 'undefined') {
-            renderYTDChart(equityCSV, ytdYear);
-          } else {
-            setTimeout(renderChart, 100);
-          }
-        };
-        
-        // Start trying to render after a short delay to ensure Chart.js is loaded
-        setTimeout(renderChart, 200);
-      } catch(err) {
-        console.error("Error in main:", err);
+        latest = await loadJSON("data/latest.json");
+      } catch(e) {
+        console.error("Could not load latest.json:", e);
       }
+      try {
+        equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
+      } catch(e) {
+        console.error("Could not load equity curve CSV:", e);
+      }
+      
+      if(latest?.recommendation) renderAllocation(latest.recommendation);
+      
+      if(!equityCSV?.rows?.length) {
+        document.getElementById("portfolioDateRange").textContent = latest?.last_backtest_date
+          ? "As of: " + new Date(latest.last_backtest_date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
+          : "As of: —";
+        if(latest?.summary) {
+          const s = latest.summary;
+          document.getElementById("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
+          document.getElementById("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
+          document.getElementById("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
+          document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
+          renderGrowthTrackerFromSummary(s);
+        } else {
+          document.getElementById("growthTracker").innerHTML = '<p style="font-size: 13px; color: var(--muted);">Equity curve data could not be loaded. Ensure <span class="mono">docs/data/equity_curve_TURBO_phase7_BASE.csv</span> exists and refresh.</p>';
+          const chartParent = document.getElementById("ytdChart").parentElement;
+          if(chartParent) chartParent.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart data could not be loaded. Check docs/data files.</div>';
+        }
+        return;
+      }
+      
+      const rows = equityCSV.rows;
+      const lastRow = rows.filter(r => r.date).pop();
+      const ytdYear = lastRow?.date ? Number(String(lastRow.date).slice(0, 4)) : new Date().getFullYear();
+      if(lastRow?.date){
+        const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+        document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
+      }
+      
+      const ytdFromEquity = computeYTDFromEquity(equityCSV, ytdYear);
+      renderYTD(ytdFromEquity);
+      renderGrowthTracker(ytdFromEquity);
+      
+      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
+      if(ytdRows.length > 0){
+        const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+        const descEl = document.getElementById("growthTrackerDesc");
+        if(descEl) descEl.textContent = `If you invested $1,000 on ${firstYtd} — here's where you'd be today.`;
+      }
+      
+      const renderChart = () => {
+        if(typeof Chart !== 'undefined') {
+          renderYTDChart(equityCSV, ytdYear);
+        } else {
+          setTimeout(renderChart, 100);
+        }
+      };
+      setTimeout(renderChart, 200);
+    }
+    
+    function renderGrowthTrackerFromSummary(summary){
+      const container = document.getElementById("growthTracker");
+      if(!container || !summary) return;
+      const initialInvestment = 1000;
+      const strategies = [
+        { label: "Strategy", ytd: Number(summary.Strategy_Net?.YTD) || 0 },
+        { label: "SPY B&H", ytd: Number(summary.BuyHold_SPY?.YTD) || 0 },
+        { label: "SPY 1.3x", ytd: Number(summary["BuyHold_SPY_1.3x_Net"]?.YTD) || 0 },
+        { label: "SPY 2.0x", ytd: Number(summary["BuyHold_SPY_2.0x_Net"]?.YTD) || 0 }
+      ];
+      container.innerHTML = strategies.map(item => {
+        const endValue = initialInvestment * (1 + item.ytd);
+        const diff = endValue - initialInvestment;
+        const isPositive = diff >= 0;
+        const valueColor = item.label === "Strategy" ? "var(--trading-green)" : (isPositive ? "var(--text)" : "var(--trading-red)");
+        const diffColor = isPositive ? "var(--trading-green)" : "var(--trading-red)";
+        return `<div style="text-align: center;">
+          <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px;">${item.label}</p>
+          <p style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${valueColor}; margin: 0 0 4px;">${fmtCurrency(endValue)}</p>
+          <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: ${diffColor}; margin: 0;">${isPositive ? "+" : ""}${fmtCurrency(diff)}</p>
+        </div>`;
+      }).join("");
     }
 
     main().catch(err => {
