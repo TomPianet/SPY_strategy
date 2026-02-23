@@ -32,8 +32,8 @@
         Long-run results
       </h1>
       <p style="font-size: 15px; color: var(--muted); margin: 0; line-height: 1.6;">
-        Cumulative performance since inception, net of all costs and financing. The chart below shows how $1,000 would have grown over time
-        for the strategy and benchmark buy &amp; hold portfolios.
+        Shows the strategy’s performance over the full tradable history, after transaction costs and financing. The chart illustrates how a fixed
+        initial investment would have grown for the strategy compared with buy-and-hold benchmarks.
       </p>
     </section>
 
@@ -44,7 +44,7 @@
           If you invested $1,000 at inception
         </h2>
         <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">
-          Final value and total return from February 2013 to the latest backtest date.
+          Final value and total return over the full tradable history, starting from the first tradable date.
         </div>
       </div>
       <div id="invest1000Body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px;">
@@ -59,7 +59,7 @@
           Cumulative returns since inception
         </h2>
         <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">
-          Cumulative % return of $1,000 invested at inception — Strategy (Net) vs SPY Buy &amp; Hold and leveraged SPY benchmarks.
+          Displays the cumulative percentage return over time for the strategy (net) versus SPY buy-and-hold and leveraged SPY benchmark portfolios.
         </div>
       </div>
       <div style="position: relative; height: 380px; width: 100%;">
@@ -90,6 +90,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script type="module">
+    const TRADABLE_START = "2014-10-21";
+
     const fmtPct = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
@@ -107,12 +109,6 @@
       if (!Number.isFinite(n)) return "—";
       return "$" + n.toFixed(2);
     };
-
-    async function loadJSON(path){
-      const r = await fetch(path, {cache:"no-store"});
-      if(!r.ok) throw new Error("Cannot load " + path);
-      return await r.json();
-    }
 
     async function loadCSV(path){
       const r = await fetch(path, {cache:"no-store"});
@@ -133,24 +129,33 @@
       return {headers, rows};
     }
 
-    function renderInvested1000(extras){
+    function renderInvested1000(equityCSV){
       const container = document.getElementById("invest1000Body");
-      if(!container || !extras?.series) return;
+      if(!container || !equityCSV?.rows) return;
 
-      const initial = Number(extras.investment_scenarios?.since_start_initial) || 1000;
+      const initial = 1000;
+      const allRows = equityCSV.rows || [];
+      const tradableRows = allRows.filter(r => r.date && String(r.date) >= TRADABLE_START);
+      if(tradableRows.length === 0) return;
+
+      const first = tradableRows[0];
+      const last = tradableRows[tradableRows.length - 1];
 
       const seriesDefs = [
-        { key: "Strategy (Net)", label: "Strategy (Net)", highlight: true },
-        { key: "Buy & Hold SPY", label: "SPY Buy & Hold", highlight: false },
-        { key: "B&H SPY 1.3x (Net)", label: "SPY 1.3x (Net)", highlight: false },
-        { key: "B&H SPY 2.0x (Net)", label: "SPY 2.0x (Net)", highlight: false }
+        { col: "Strategy_Net_Eq", label: "Strategy (Net)", highlight: true },
+        { col: "BuyHold_SPY_Eq", label: "SPY Buy & Hold", highlight: false },
+        { col: "BuyHold_SPY_1.3x_Net_Eq", label: "SPY 1.3x (Net)", highlight: false },
+        { col: "BuyHold_SPY_2.0x_Net_Eq", label: "SPY 2.0x (Net)", highlight: false }
       ];
 
       const cards = seriesDefs.map(def => {
-        const s = extras.series[def.key];
-        if(!s || !s.since_start) return "";
-        const finalValue = Number(s.since_start.final_value_1000);
-        const totalReturn = Number(s.since_start.total_return); // e.g. 9.53 = +953%
+        const startEq = Number(first[def.col]) || 0;
+        const endEq = Number(last[def.col]) || 0;
+        if(!startEq || !endEq) return "";
+
+        const growth = endEq / startEq;
+        const finalValue = initial * growth;
+        const totalReturn = growth - 1; // e.g. 0.95 = -5%
         const valueColor = def.highlight ? "var(--trading-green)" : "var(--text)";
         const returnColor = totalReturn >= 0 ? "var(--trading-green)" : "var(--trading-red)";
 
@@ -166,7 +171,7 @@
               Total return: ${(totalReturn * 100).toFixed(1)}%
             </p>
             <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin: 0;">
-              From $${initial.toFixed(0)} at inception.
+              From $${initial.toFixed(0)} at tradable inception.
             </p>
           </div>
         `;
@@ -176,7 +181,8 @@
     }
 
     function renderCumulativeChart(equityCSV){
-      const rows = equityCSV.rows || [];
+      const allRows = equityCSV.rows || [];
+      const rows = allRows.filter(r => r.date && String(r.date) >= TRADABLE_START);
       if(rows.length === 0) return;
 
       const labels = rows.map(r => r.date);
@@ -314,10 +320,9 @@
 
     async function main(){
       try {
-        const extras = await loadJSON("data/extras.json");
         const equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
 
-        renderInvested1000(extras);
+        renderInvested1000(equityCSV);
 
         const waitForChart = () => {
           if(typeof Chart === "undefined"){
