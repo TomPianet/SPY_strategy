@@ -117,20 +117,27 @@
       return "$" + n.toFixed(2);
     };
 
+    function dataUrl(path){
+      return new URL(path, document.baseURI || document.URL).href;
+    }
+
     async function loadJSON(path){
-      const r = await fetch(path, {cache:"no-store"});
+      const url = path.startsWith("http") ? path : dataUrl(path);
+      const r = await fetch(url, {cache:"no-store"});
       if(!r.ok) throw new Error("Cannot load " + path);
       return await r.json();
     }
 
     async function loadCSV(path){
-      const r = await fetch(path, {cache:"no-store"});
+      const url = path.startsWith("http") ? path : dataUrl(path);
+      const r = await fetch(url, {cache:"no-store"});
       if(!r.ok) throw new Error("Cannot load " + path);
-      const text = await r.text();
+      let text = await r.text();
+      if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
       if(lines.length === 0) return {headers: [], rows: []};
       
-      const headers = lines[0].split(",").map(h => h.trim());
+      const headers = lines[0].split(",").map(h => h.trim().replace(/^\uFEFF/, ""));
       const rows = lines.slice(1).map(line => {
         const parts = line.split(",").map(p => p.trim());
         const obj = {};
@@ -400,17 +407,18 @@
 
     function renderYTD(ytdFromEquity){
       const fallback = "—";
+      const set = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
       if(!ytdFromEquity){
-        document.getElementById("ytdStrategyMain").textContent = fallback;
-        document.getElementById("ytdSPYMain").textContent = fallback;
-        document.getElementById("ytd13Main").textContent = fallback;
-        document.getElementById("ytd20Main").textContent = fallback;
+        set("ytdStrategyMain", fallback);
+        set("ytdSPYMain", fallback);
+        set("ytd13Main", fallback);
+        set("ytd20Main", fallback);
         return;
       }
-      document.getElementById("ytdStrategyMain").textContent = fmtPct(ytdFromEquity.Strategy_Net);
-      document.getElementById("ytdSPYMain").textContent = fmtPct(ytdFromEquity.BuyHold_SPY);
-      document.getElementById("ytd13Main").textContent = fmtPct(ytdFromEquity.BuyHold_SPY_1.3x_Net);
-      document.getElementById("ytd20Main").textContent = fmtPct(ytdFromEquity.BuyHold_SPY_2.0x_Net);
+      set("ytdStrategyMain", fmtPct(ytdFromEquity.Strategy_Net));
+      set("ytdSPYMain", fmtPct(ytdFromEquity.BuyHold_SPY));
+      set("ytd13Main", fmtPct(ytdFromEquity.BuyHold_SPY_1.3x_Net));
+      set("ytd20Main", fmtPct(ytdFromEquity.BuyHold_SPY_2.0x_Net));
     }
 
     function renderGrowthTracker(ytdFromEquity){
@@ -489,24 +497,28 @@
       } catch(e) {
         console.error("Could not load equity curve CSV:", e);
       }
+
+      const el = (id) => document.getElementById(id);
       
       if(latest?.recommendation) renderAllocation(latest.recommendation);
       
       if(!equityCSV?.rows?.length) {
-        document.getElementById("portfolioDateRange").textContent = latest?.last_backtest_date
+        const dateEl = el("portfolioDateRange");
+        if(dateEl) dateEl.textContent = latest?.last_backtest_date
           ? "As of: " + new Date(latest.last_backtest_date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
           : "As of: —";
         if(latest?.summary) {
           const s = latest.summary;
-          document.getElementById("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
-          document.getElementById("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
-          document.getElementById("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
-          document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
+          if(el("ytdStrategyMain")) el("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
+          if(el("ytdSPYMain")) el("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
+          if(el("ytd13Main")) el("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
+          if(el("ytd20Main")) el("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
           renderGrowthTrackerFromSummary(s);
         } else {
-          document.getElementById("growthTracker").innerHTML = '<p style="font-size: 13px; color: var(--muted);">Equity curve data could not be loaded. Ensure <span class="mono">docs/data/equity_curve_TURBO_phase7_BASE.csv</span> exists and refresh.</p>';
-          const chartParent = document.getElementById("ytdChart").parentElement;
-          if(chartParent) chartParent.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart data could not be loaded. Check docs/data files.</div>';
+          const growthEl = el("growthTracker");
+          if(growthEl) growthEl.innerHTML = '<p style="font-size: 13px; color: var(--muted);">Data could not be loaded. Check that <span class="mono">data/latest.json</span> and <span class="mono">data/equity_curve_TURBO_phase7_BASE.csv</span> exist and refresh.</p>';
+          const chartEl = el("ytdChart");
+          if(chartEl && chartEl.parentElement) chartEl.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart data could not be loaded. Check data files.</div>';
         }
         return;
       }
@@ -516,7 +528,8 @@
       const ytdYear = lastRow?.date ? Number(String(lastRow.date).slice(0, 4)) : new Date().getFullYear();
       if(lastRow?.date){
         const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
-        document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
+        const dateEl = el("portfolioDateRange");
+        if(dateEl) dateEl.textContent = `As of: ${endDate}`;
       }
       
       const ytdFromEquity = computeYTDFromEquity(equityCSV, ytdYear);
@@ -526,7 +539,7 @@
       const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
       if(ytdRows.length > 0){
         const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
-        const descEl = document.getElementById("growthTrackerDesc");
+        const descEl = el("growthTrackerDesc");
         if(descEl) descEl.textContent = `If you invested $1,000 on ${firstYtd} — here's where you'd be today.`;
       }
       
