@@ -18,7 +18,7 @@
       </div>
       <div class="navlinks">
         <a href="index.html">Home</a>
-        <a href="portfolio.html">Portfolio</a>
+        <a href="portfolio.html">Portfolio YTD</a>
         <a href="risk-management.html">Risk</a>
         <a class="active" href="results.html">Results</a>
         <a href="visuals.html">Visuals</a>
@@ -26,126 +26,87 @@
       </div>
     </nav>
 
-    <!-- Key Stats Section -->
-    <section class="card" style="margin-top: 24px;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div>
-          <div class="small" style="margin-bottom: 8px; color: var(--muted);">Annualized Return</div>
-          <div class="stat-value stat-value-green" id="statCAGR" style="font-size: 2rem;">—</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 8px; color: var(--muted);">Sharpe Ratio</div>
-          <div class="stat-value stat-value-cyan" id="statSharpe" style="font-size: 2rem;">—</div>
-        </div>
-        <div>
-          <div class="small" style="margin-bottom: 8px; color: var(--muted);">Max Drawdown</div>
-          <div class="stat-value stat-value-red" id="statMaxDD" style="font-size: 2rem;">—</div>
+    <!-- Header -->
+    <section style="margin-top: 32px; margin-bottom: 32px;">
+      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.03em; font-family: 'Inter', sans-serif; line-height: 1.2;">
+        Long-run results
+      </h1>
+      <p style="font-size: 15px; color: var(--muted); margin: 0; line-height: 1.6;">
+        Cumulative performance since inception, net of all costs and financing. The chart below shows how $1,000 would have grown over time
+        for the strategy and benchmark buy &amp; hold portfolios.
+      </p>
+    </section>
+
+    <!-- If you invested $1,000 at inception -->
+    <section class="card" style="margin-bottom: 32px; padding: 28px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">
+          If you invested $1,000 at inception
+        </h2>
+        <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">
+          Final value and total return from February 2013 to the latest backtest date.
         </div>
       </div>
-
-      <div class="pills">
-        <span class="pill" id="pillBacktest">Backtest: —</span>
-        <span class="pill" id="pillSample">Sample: —</span>
+      <div id="invest1000Body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px;">
+        <!-- Populated by JavaScript -->
       </div>
     </section>
 
-    <section class="card" style="margin-top: 20px;">
-      <h2>Next week allocation</h2>
-      <div class="small" id="recoAsOf">As of: —</div>
-
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr><th>Asset</th><th class="right">Weight</th></tr>
-          </thead>
-          <tbody id="weightsBody"></tbody>
-        </table>
+    <!-- Cumulative returns chart -->
+    <section class="card" style="margin-bottom: 32px; padding: 28px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">
+          Cumulative returns since inception
+        </h2>
+        <div class="small" style="font-size: 12px; color: var(--muted); line-height: 1.5;">
+          Cumulative % return of $1,000 invested at inception — Strategy (Net) vs SPY Buy &amp; Hold and leveraged SPY benchmarks.
+        </div>
       </div>
-
-      <div class="small" id="recoFlags" style="margin-top:10px"></div>
-    </section>
-
-    <section class="card" style="margin-top: 14px;">
-      <h2>Long-run results (net of costs + financing)</h2>
-      <div class="small">
-        Metrics below are shown for three samples: <b>FULL</b>, <b>TRADABLE</b>, and <b>OOS</b>.
-      </div>
-
-      <div class="blockTitle">FULL SAMPLE</div>
-      <div class="small" id="fullRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="fullBody"></tbody>
-        </table>
-      </div>
-
-      <div class="blockTitle">TRADABLE SAMPLE</div>
-      <div class="small" id="tradRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="tradBody"></tbody>
-        </table>
-      </div>
-
-      <div class="blockTitle">OUT-OF-SAMPLE (2015–2025)</div>
-      <div class="small" id="oosRange">—</div>
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th class="right">CAGR</th>
-              <th class="right">Vol</th>
-              <th class="right">Sharpe</th>
-              <th class="right">Sortino</th>
-              <th class="right">MaxDD</th>
-              <th class="right">Calmar</th>
-            </tr>
-          </thead>
-          <tbody id="oosBody"></tbody>
-        </table>
-      </div>
-
-      <div class="footer muted">
-        To update: run Colab → export files → replace files in <span class="mono">docs/data/</span> → commit/push.
+      <div style="position: relative; height: 380px; width: 100%;">
+        <canvas id="cumReturnChart"></canvas>
       </div>
     </section>
+
+    <!-- Legend -->
+    <div style="margin-top: 8px; padding: 16px 20px; background: hsl(220 18% 8% / 0.5); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 18px 18px; backdrop-filter: blur(4px);">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 18px; height: 3px; background: var(--trading-green); border-radius: 2px;"></span>
+        Strategy (Net)
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 18px; height: 3px; background: var(--muted); border-radius: 2px;"></span>
+        SPY B&amp;H
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 18px; height: 3px; background: var(--trading-cyan); opacity: 0.7; border-radius: 2px;"></span>
+        SPY 1.3x (Net)
+      </span>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
+        <span style="display: inline-block; width: 18px; height: 3px; background: var(--trading-red); opacity: 0.7; border-radius: 2px;"></span>
+        SPY 2.0x (Net)
+      </span>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script type="module">
     const fmtPct = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
       return (n * 100).toFixed(2) + "%";
     };
+
     const fmtNum = (x) => {
       const n = Number(x);
       if (!Number.isFinite(n)) return "—";
       return n.toFixed(2);
     };
-    const esc = (s) => String(s).replaceAll("_", " ");
+
+    const fmtCurrency = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return "$" + n.toFixed(2);
+    };
 
     async function loadJSON(path){
       const r = await fetch(path, {cache:"no-store"});
@@ -172,114 +133,200 @@
       return {headers, rows};
     }
 
-    function renderWeights(reco){
-      document.getElementById("recoAsOf").textContent = "As of: " + (reco.as_of || "—");
-      const w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
+    function renderInvested1000(extras){
+      const container = document.getElementById("invest1000Body");
+      if(!container || !extras?.series) return;
 
-      const body = document.getElementById("weightsBody");
-      body.innerHTML = "";
-      ["SPY","TLT","GLD","BIL"].forEach(a => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="mono">${a}</td>
-          <td class="right mono">${(Number(w[a]) * 100).toFixed(2)}%</td>
-        `;
-        body.appendChild(tr);
-      });
+      const initial = Number(extras.investment_scenarios?.since_start_initial) || 1000;
 
-      const levOn = !!reco.leverage;
-      const cls = levOn ? "tag warn" : "tag good";
-      const risky = (reco.risky_gross !== undefined) ? Number(reco.risky_gross).toFixed(4) : "—";
-
-      document.getElementById("recoFlags").innerHTML = `
-        <span class="${cls}">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
-        <span class="muted"> • risky gross: <span class="mono">${risky}x</span></span>
-      `;
-    }
-
-    function renderBlock(rows, blockName, tbodyId, rangeId){
-      const order = [
-        "Strategy_Net",
-        "BuyHold_SPY",
-        "BuyHold_50TLT_50GLD",
-        "BuyHold_SPY_1.3x_Net",
-        "BuyHold_SPY_2.0x_Net"
+      const seriesDefs = [
+        { key: "Strategy (Net)", label: "Strategy (Net)", highlight: true },
+        { key: "Buy & Hold SPY", label: "SPY Buy & Hold", highlight: false },
+        { key: "B&H SPY 1.3x (Net)", label: "SPY 1.3x (Net)", highlight: false },
+        { key: "B&H SPY 2.0x (Net)", label: "SPY 2.0x (Net)", highlight: false }
       ];
 
-      const sub = rows.filter(r => r.Block === blockName);
-      if(sub.length === 0) return;
+      const cards = seriesDefs.map(def => {
+        const s = extras.series[def.key];
+        if(!s || !s.since_start) return "";
+        const finalValue = Number(s.since_start.final_value_1000);
+        const totalReturn = Number(s.since_start.total_return); // e.g. 9.53 = +953%
+        const valueColor = def.highlight ? "var(--trading-green)" : "var(--text)";
+        const returnColor = totalReturn >= 0 ? "var(--trading-green)" : "var(--trading-red)";
 
-      const rangeEl = document.getElementById(rangeId);
-      if(rangeEl) rangeEl.textContent = "";
-
-      const tbody = document.getElementById(tbodyId);
-      if(!tbody) return;
-      tbody.innerHTML = "";
-
-      order.forEach(name => {
-        const r = sub.find(x => x.Series === name);
-        if(!r) return;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="mono">${esc(name)}</td>
-          <td class="right mono">${fmtPct(r.CAGR)}</td>
-          <td class="right mono">${fmtPct(r.Vol)}</td>
-          <td class="right mono">${fmtNum(r.Sharpe)}</td>
-          <td class="right mono">${fmtNum(r.Sortino)}</td>
-          <td class="right mono">${fmtPct(r.MaxDD)}</td>
-          <td class="right mono">${fmtNum(r.Calmar)}</td>
+        return `
+          <div class="card" style="padding: 18px; border-radius: 12px; background: hsl(220 18% 8% / 0.7);">
+            <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px;">
+              ${def.label}
+            </p>
+            <p style="font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${valueColor}; margin: 0 0 4px;">
+              ${fmtCurrency(finalValue)}
+            </p>
+            <p style="font-size: 12px; font-family: 'JetBrains Mono', monospace; color: ${returnColor}; margin: 0 0 2px;">
+              Total return: ${(totalReturn * 100).toFixed(1)}%
+            </p>
+            <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin: 0;">
+              From $${initial.toFixed(0)} at inception.
+            </p>
+          </div>
         `;
-        tbody.appendChild(tr);
-      });
+      }).join("");
+
+      container.innerHTML = cards;
     }
 
-    function renderStats(summary, metricsRows){
-      const strategyMetrics = metricsRows.find(r => 
-        r.Block === "TRADABLE_SAMPLE" && r.Series === "Strategy_Net"
-      ) || summary?.Strategy_Net;
+    function renderCumulativeChart(equityCSV){
+      const rows = equityCSV.rows || [];
+      if(rows.length === 0) return;
 
-      if(strategyMetrics){
-        const cagr = strategyMetrics.CAGR || summary?.Strategy_Net?.CAGR;
-        document.getElementById("statCAGR").textContent = cagr ? 
-          "+" + fmtPct(cagr) : "—";
+      const labels = rows.map(r => r.date);
 
-        const sharpe = strategyMetrics.Sharpe || summary?.Strategy_Net?.Sharpe;
-        document.getElementById("statSharpe").textContent = sharpe ? 
-          fmtNum(sharpe) : "—";
+      const stratEq = rows.map(r => Number(r.Strategy_Net_Eq) || 0);
+      const spyEq = rows.map(r => Number(r.BuyHold_SPY_Eq) || 0);
+      const spy13Eq = rows.map(r => Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || 0);
+      const spy20Eq = rows.map(r => Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || 0);
 
-        const maxdd = strategyMetrics.MaxDD || summary?.Strategy_Net?.MaxDD;
-        document.getElementById("statMaxDD").textContent = maxdd ? 
-          fmtPct(maxdd) : "—";
-      }
+      const stratStart = stratEq[0] || 1;
+      const spyStart = spyEq[0] || 1;
+      const spy13Start = spy13Eq[0] || 1;
+      const spy20Start = spy20Eq[0] || 1;
+
+      const stratRet = stratEq.map(v => (v && stratStart) ? ((v / stratStart) - 1) * 100 : 0);
+      const spyRet = spyEq.map(v => (v && spyStart) ? ((v / spyStart) - 1) * 100 : 0);
+      const spy13Ret = spy13Eq.map(v => (v && spy13Start) ? ((v / spy13Start) - 1) * 100 : 0);
+      const spy20Ret = spy20Eq.map(v => (v && spy20Start) ? ((v / spy20Start) - 1) * 100 : 0);
+
+      const ctx = document.getElementById("cumReturnChart").getContext("2d");
+      if(!ctx || typeof Chart === "undefined") return;
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Strategy (Net)",
+              data: stratRet,
+              borderColor: "hsl(142 72% 45%)",
+              backgroundColor: "hsl(142 72% 45% / 0.08)",
+              borderWidth: 3,
+              pointRadius: 0,
+              pointHoverRadius: 3,
+              tension: 0.35,
+              fill: false
+            },
+            {
+              label: "SPY B&H",
+              data: spyRet,
+              borderColor: "hsl(215 12% 50%)",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              borderDash: [5, 3],
+              pointRadius: 0,
+              pointHoverRadius: 3,
+              tension: 0.35,
+              fill: false
+            },
+            {
+              label: "SPY 1.3x (Net)",
+              data: spy13Ret,
+              borderColor: "hsl(187 80% 52%)",
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
+              pointRadius: 0,
+              pointHoverRadius: 3,
+              tension: 0.35,
+              fill: false,
+              opacity: 0.7
+            },
+            {
+              label: "SPY 2.0x (Net)",
+              data: spy20Ret,
+              borderColor: "hsl(0 72% 55%)",
+              backgroundColor: "transparent",
+              borderWidth: 1.5,
+              borderDash: [5, 3],
+              pointRadius: 0,
+              pointHoverRadius: 3,
+              tension: 0.35,
+              fill: false,
+              opacity: 0.7
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "hsl(220 18% 10% / 0.98)",
+              borderColor: "hsl(220 14% 18%)",
+              borderWidth: 1,
+              borderRadius: 8,
+              padding: 12,
+              titleColor: "hsl(210 20% 92%)",
+              bodyColor: "hsl(210 20% 92%)",
+              titleFont: { family: "'JetBrains Mono', monospace", size: 12, weight: 600 },
+              bodyFont: { family: "'JetBrains Mono', monospace", size: 12 },
+              displayColors: true,
+              boxPadding: 6,
+              callbacks: {
+                label: (item) => {
+                  const value = Number(item.raw);
+                  const sign = value >= 0 ? "+" : "";
+                  return `${item.dataset.label}: ${sign}${value.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                maxTicksLimit: 10,
+                font: { family: "'JetBrains Mono', monospace", size: 11 }
+              },
+              grid: {
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
+              }
+            },
+            y: {
+              ticks: {
+                color: "hsl(215 12% 50%)",
+                font: { family: "'JetBrains Mono', monospace", size: 11 },
+                callback: (value) => `${value.toFixed(0)}%`
+              },
+              grid: {
+                color: "hsl(220 14% 18% / 0.5)",
+                drawBorder: false,
+                lineWidth: 1
+              }
+            }
+          }
+        }
+      });
     }
 
     async function main(){
       try {
-        const latest = await loadJSON("data/latest.json");
-        document.getElementById("pillBacktest").textContent =
-          "Backtest: " + (latest.last_backtest_date || "—");
-        document.getElementById("pillSample").textContent =
-          "Sample: " + (latest.sample_used_for_metrics || "—");
+        const extras = await loadJSON("data/extras.json");
+        const equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
 
-        renderWeights(latest.recommendation || {});
+        renderInvested1000(extras);
 
-        const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
-        const rows = metrics.rows.map(r => ({
-          Block: (r.Block || "").trim(),
-          Series: (r.Series || "").trim(),
-          CAGR: r.CAGR ? Number(r.CAGR) : null,
-          Vol: r.Vol ? Number(r.Vol) : null,
-          Sharpe: r.Sharpe ? Number(r.Sharpe) : null,
-          Sortino: r.Sortino ? Number(r.Sortino) : null,
-          MaxDD: r.MaxDD ? Number(r.MaxDD) : null,
-          Calmar: r.Calmar ? Number(r.Calmar) : null
-        }));
-
-        renderStats(latest.summary, rows);
-        renderBlock(rows, "FULL_SAMPLE", "fullBody", "fullRange");
-        renderBlock(rows, "TRADABLE_SAMPLE", "tradBody", "tradRange");
-        renderBlock(rows, "OOS_SAMPLE_2015_2025", "oosBody", "oosRange");
+        const waitForChart = () => {
+          if(typeof Chart === "undefined"){
+            setTimeout(waitForChart, 100);
+            return;
+          }
+          renderCumulativeChart(equityCSV);
+        };
+        waitForChart();
       } catch(err) {
         console.error("Error in main:", err);
       }
