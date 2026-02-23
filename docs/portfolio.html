@@ -142,7 +142,7 @@
       return {headers, rows};
     }
 
-    function renderYTDChart(equityData){
+    function renderYTDChart(equityData, ytdYear){
       const canvas = document.getElementById("ytdChart");
       if(!canvas) {
         console.error("Canvas element not found");
@@ -156,8 +156,8 @@
         return;
       }
 
-      // Filter to YTD data only (current year)
-      const currentYear = new Date().getFullYear();
+      // Filter to YTD data only (year derived from CSV)
+      const currentYear = Number(ytdYear) || new Date().getFullYear();
       const ytdRows = equityData.rows.filter(r => {
         if(!r.date) return false;
         const dateStr = String(r.date);
@@ -376,9 +376,9 @@
       `;
     }
 
-    function computeYTDFromEquity(equityCSV){
+    function computeYTDFromEquity(equityCSV, ytdYear){
       const rows = equityCSV?.rows || [];
-      const currentYear = new Date().getFullYear();
+      const currentYear = Number(ytdYear) || new Date().getFullYear();
       const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
       if(ytdRows.length < 2) return null;
       const first = ytdRows[0];
@@ -484,6 +484,7 @@
         // Date range from equity curve (last date in data)
         const rows = equityCSV?.rows || [];
         const lastRow = rows.filter(r => r.date).pop();
+        const ytdYear = lastRow?.date ? Number(String(lastRow.date).slice(0, 4)) : new Date().getFullYear();
         if(lastRow?.date){
           const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
           document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
@@ -492,12 +493,11 @@
         renderAllocation(latest.recommendation || {});
         
         // YTD and Growth computed from equity curve (single source of truth)
-        const ytdFromEquity = computeYTDFromEquity(equityCSV);
+        const ytdFromEquity = computeYTDFromEquity(equityCSV, ytdYear);
         renderYTD(ytdFromEquity);
         renderGrowthTracker(ytdFromEquity);
         
-        const currentYear = new Date().getFullYear();
-        const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
+        const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
         if(ytdRows.length > 0){
           const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
           const descEl = document.getElementById("growthTrackerDesc");
@@ -507,7 +507,7 @@
         // Wait for Chart.js to be available, then render chart
         const renderChart = () => {
           if(typeof Chart !== 'undefined') {
-            renderYTDChart(equityCSV);
+            renderYTDChart(equityCSV, ytdYear);
           } else {
             setTimeout(renderChart, 100);
           }
