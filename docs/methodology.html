@@ -26,72 +26,252 @@
       </div>
     </div>
 
-    <header class="header">
+    <!-- Hero -->
+    <header class="header" style="margin-bottom: 32px;">
       <div>
-        <h1>Methodology & research story</h1>
-        <p class="subtitle">
-          This page explains the research logic: inputs, model design, why SPY, and what limitations remain.
+        <p class="small" style="text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft); margin-bottom: 8px;">
+          Research
+        </p>
+        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.03em; line-height: 1.2;">
+          Methodology &amp; research story
+        </h1>
+        <div style="width: 40px; height: 2px; background: var(--accent-soft); border-radius: 999px; margin-bottom: 12px;"></div>
+        <p class="subtitle" style="max-width: 640px;">
+          This project builds a weekly decision system for SPY (S&amp;P 500 proxy) and turns it into daily portfolio weights
+          across SPY, TLT, GLD, and BIL. The goal is to improve risk‑adjusted results versus buy‑and‑hold after including
+          realistic trading frictions.
         </p>
       </div>
     </header>
 
-    <section class="card">
-      <h2>Research question</h2>
-      <div class="small">
-        Can a weekly rules-based allocation strategy using a set of macro/market variables produce better risk-adjusted performance
-        than Buy & Hold SPY (including leveraged B&H), when we include realistic transaction costs and financing?
+    <!-- Research question -->
+    <section class="card" style="margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <div style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+          Q
+        </div>
+        <h2 style="font-size: 16px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin: 0;">Research question</h2>
+      </div>
+      <p class="small" style="margin: 0; line-height: 1.7;">
+        Can a walk‑forward strategy that combines market and macro signals (and a machine‑learning regime forecast) deliver better
+        risk‑adjusted performance than buy‑and‑hold SPY, once transaction costs and financing costs are included?
+      </p>
+    </section>
+
+    <!-- Inputs & intuition -->
+    <section class="card" style="margin-bottom: 24px;">
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+          <div style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+            Σ
+          </div>
+          <h2 style="font-size: 16px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin: 0;">
+            Inputs &amp; intuition
+          </h2>
+        </div>
+        <p class="small" style="margin: 0; color: var(--muted);">
+          Short literature summary — the full variable table and citations live in the longer write‑up.
+        </p>
+      </div>
+
+      <p class="small" style="margin: 0 0 14px; line-height: 1.7;">
+        The strategy uses a small set of signals that capture different risk channels. They are combined because no single
+        indicator is reliable in every market regime.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Equity trend &amp; momentum (SPY)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Measures whether the market is in a sustained uptrend or weakening; supports higher risk in strong trends and more
+            caution in weak trends.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Volatility &amp; implied risk (VIX / realized vol)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Captures risk‑regime shifts; higher volatility supports reducing exposure and tightening leverage.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Credit and financial stress (HY spreads, stress index)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Proxies funding conditions and systemic stress; rising stress supports defensive positioning.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Rates / duration environment (Treasury proxy)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Helps distinguish growth‑risk vs flight‑to‑quality regimes; supports shifting toward bonds when risk‑off dominates.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Gold (GLD)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Hedge/diversifier sleeve that can behave differently from equities in stress or inflation regimes.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 10px 12px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 13px; font-weight: 500; margin: 0 0 4px;">Cash / bills (BIL)</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Capital preservation and the funding leg; negative BIL weight represents borrowing when leverage is used.
+          </p>
+        </div>
+      </div>
+
+      <p class="small" style="margin-top: 10px; color: var(--muted); font-style: italic;">
+        Full citations and a variable table are in the longer research document.
+      </p>
+    </section>
+
+    <!-- Model & workflow -->
+    <section class="card" style="margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <div style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+          ML
+        </div>
+        <h2 style="font-size: 16px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin: 0;">Model &amp; workflow</h2>
+      </div>
+
+      <div style="position: relative; margin-left: 4px; padding-left: 22px;">
+        <div style="position: absolute; left: 8px; top: 6px; bottom: 6px; width: 1px; background: linear-gradient(to bottom, hsl(142 72% 45% / 0.3), hsl(220 18% 25% / 0.2), transparent);"></div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+              01
+            </div>
+            <div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px;">Build data + features</p>
+              <p class="small" style="margin: 0; line-height: 1.7;">
+                Daily market and macro series are engineered into features (trend, momentum, volatility, stress).
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+              02
+            </div>
+            <div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px;">Weekly decision timing</p>
+              <p class="small" style="margin: 0; line-height: 1.7;">
+                Signals are aligned to a weekly schedule (Friday close convention) and mapped to execution/effective dates to avoid
+                look‑ahead.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+              03
+            </div>
+            <div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px;">Walk‑forward machine learning</p>
+              <p class="small" style="margin: 0; line-height: 1.7;">
+                Models are trained sequentially through time to estimate the probability of a high‑volatility regime and a short‑horizon
+                volatility forecast used for risk sizing.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+              04
+            </div>
+            <div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px;">Portfolio construction</p>
+              <p class="small" style="margin: 0; line-height: 1.7;">
+                The forecasts feed an allocation engine that sets weights for SPY/TLT/GLD/BIL with constraints (leverage caps, turnover
+                budget, shock filters).
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+              05
+            </div>
+            <div>
+              <p style="font-size: 13px; font-weight: 600; margin: 0 0 2px;">Realistic backtest</p>
+              <p class="small" style="margin: 0; line-height: 1.7;">
+                Daily returns are computed using effective weights and are reported net of transaction costs (turnover‑based) and net
+                of financing costs when borrowing is used.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Variables and intuition (literature review summary)</h2>
-      <div class="small" style="margin-bottom:10px">
-        Keep this section short on the website and more detailed in the full write-up (tables + citations there).
+    <!-- Design choices -->
+    <section class="card" style="margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <div style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-soft);">
+          fx
+        </div>
+        <h2 style="font-size: 16px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin: 0;">Design choices</h2>
       </div>
-      <table>
-        <thead><tr><th>Input / Signal</th><th>Why it matters (1 line)</th><th>Expected effect</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">Equity trend / momentum</td><td>Captures medium-term persistence in returns</td><td>Risk-on when positive</td></tr>
-          <tr><td class="mono">Rates / bonds (TLT proxy)</td><td>Rates regimes drive discounting + risk appetite</td><td>Shift to bonds in stress</td></tr>
-          <tr><td class="mono">Gold (GLD)</td><td>Stress/hedge asset; diversification vs equities</td><td>Risk-off hedge allocation</td></tr>
-          <tr><td class="mono">Cash (BIL)</td><td>Capital preservation + financing anchor</td><td>Risk control</td></tr>
-        </tbody>
-      </table>
-    </section>
 
-    <section class="card">
-      <h2>Model & workflow</h2>
-      <div class="small">
-        The pipeline produces weekly signals → converts them to execution/effective weights → runs a daily backtest net of:
-        transaction costs (L1 turnover) and financing costs when leverage is used. Hyperparameters can be tuned efficiently
-        (walk-forward / constrained search), with a tuning agent to automate experiments.
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Design choices</h2>
-      <div class="small">
-        <ul>
-          <li><span class="mono">SPY vs QQQ</span>: SPY is used as the main market benchmark (broad S&P 500 exposure). QQQ tests can be shown as an annex if the strategy doesn’t transfer.</li>
-          <li><span class="mono">Gold vs Silver</span>: gold is used as the defensive commodity leg due to liquidity/benchmark relevance in academic and practitioner use.</li>
-          <li><span class="mono">Realism</span>: costs + financing are included to avoid “paper-only” results.</li>
-        </ul>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 4px;">
+        <div class="card" style="margin: 0; padding: 12px 14px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px; color: var(--text);">SPY vs QQQ</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            SPY is used because the focus is broad S&amp;P 500 exposure. QQQ is more concentrated and behaves differently across regimes;
+            QQQ results are placed in an annex.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 12px 14px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px; color: var(--text);">Gold vs Silver</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Gold is used as the defensive commodity leg — a standard macro hedge with strong liquidity and clearer interpretation.
+            Silver has a larger industrial component.
+          </p>
+        </div>
+        <div class="card" style="margin: 0; padding: 12px 14px; background: hsl(220 18% 10% / 0.6); border-radius: 10px; border: 1px solid hsl(220 18% 20% / 0.7);">
+          <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px; color: var(--text);">Realism first</p>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Costs, financing, turnover control, and execution timing are included to avoid “paper‑only” results that would not survive
+            implementation.
+          </p>
+        </div>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Limitations & future work</h2>
-      <div class="small">
-        <ul>
-          <li>Regime shifts and structural breaks can change relationships over time.</li>
-          <li>Signal availability / publication lags can matter; execution assumptions must be consistent.</li>
-          <li>Extensions: more assets, alternative macro variables, robustness tests, and additional transaction cost models.</li>
-        </ul>
+    <!-- Limitations & future work -->
+    <section class="card" style="margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <div style="width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">
+          !
+        </div>
+        <h2 style="font-size: 15px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin: 0; color: var(--muted);">
+          Limitations &amp; future work
+        </h2>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-left: 2px;">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); min-width: 20px;">01</span>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Relationships between macro variables and markets can change (structural breaks), so models must be monitored and
+            re‑validated over time.
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); min-width: 20px;">02</span>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Execution assumptions are simplified (end‑of‑day prices, ETF proxies); real trading includes slippage, fees, and
+            operational constraints.
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); min-width: 20px;">03</span>
+          <p class="small" style="margin: 0; line-height: 1.7;">
+            Extensions include additional assets, more macro variables with publication‑timing controls, alternative transaction cost
+            models, and more robustness testing across regimes.
+          </p>
+        </div>
       </div>
     </section>
 
     <div class="footer">
-      Tip: keep the website readable; keep the detailed literature citations and deeper proofs in the longer research document + appendix.
+      Keep this page readable; the detailed literature, data sources, and robustness checks live in the longer research document +
+      appendix.
     </div>
   </div>
 
