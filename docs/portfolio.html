@@ -36,7 +36,7 @@
     <!-- Growth of $1,000 -->
     <section class="card" style="margin-bottom: 24px;">
       <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Growth of $1,000</h2>
-      <div class="small" style="margin-bottom: 16px; font-size: 11px;">If you invested $1,000 on Jan 3, 2026 — here's where you'd be today.</div>
+      <div class="small" style="margin-bottom: 16px; font-size: 11px;" id="growthTrackerDesc">If you invested $1,000 at the start of YTD — here's where you'd be today.</div>
       <div id="growthTracker" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
         <!-- Will be populated by JavaScript -->
       </div>
@@ -56,7 +56,7 @@
       <!-- YTD Returns Summary -->
       <section class="card">
         <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">YTD Returns</h2>
-        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Cumulative year-to-date.</div>
+        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Cumulative year-to-date. Computed from equity curve.</div>
         <div style="display: flex; flex-direction: column; gap: 0;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
             <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">Strategy (Net)</span>
@@ -65,10 +65,6 @@
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
             <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SPY B&H</span>
             <span id="ytdSPYMain" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
-          </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
-            <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">50TLT/50GLD</span>
-            <span id="ytdTLTGLD" style="font-size: 15px; font-weight: 600; color: var(--text);">—</span>
           </div>
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
             <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SPY 1.3x (Net)</span>
@@ -146,7 +142,7 @@
       return {headers, rows};
     }
 
-    function renderYTDChart(equityData, ytdStartDate){
+    function renderYTDChart(equityData){
       const canvas = document.getElementById("ytdChart");
       if(!canvas) {
         console.error("Canvas element not found");
@@ -160,28 +156,24 @@
         return;
       }
 
-      // Filter to YTD data only (2026)
+      // Filter to YTD data only (current year)
+      const currentYear = new Date().getFullYear();
       const ytdRows = equityData.rows.filter(r => {
         if(!r.date) return false;
         const dateStr = String(r.date);
-        return dateStr.startsWith("2026");
+        return dateStr.startsWith(String(currentYear));
       });
 
       if(ytdRows.length === 0) {
-        console.warn("No 2026 data found for chart");
-        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">No YTD data available for 2026.</div>';
+        canvas.parentElement.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--muted);">No YTD data available for ${currentYear}.</div>`;
         return;
       }
 
-      console.log(`Found ${ytdRows.length} YTD data points`);
-
-      // Get starting values (first day of 2026) for each strategy separately
+      // Get starting values (first day of YTD) for each strategy separately
       const strategyStartValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
       const spyStartValue = Number(ytdRows[0]?.BuyHold_SPY_Eq) || 1;
       const spy13StartValue = Number(ytdRows[0]?.["BuyHold_SPY_1.3x_Net_Eq"]) || 1;
       const spy20StartValue = Number(ytdRows[0]?.["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
-      
-      console.log("Strategy start:", strategyStartValue, "SPY start:", spyStartValue);
       
       // Calculate returns from start
       const labels = ytdRows.map(r => {
@@ -208,8 +200,6 @@
         const value = Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || spy20StartValue;
         return ((value / spy20StartValue) - 1) * 100;
       });
-      
-      console.log("First strategy return:", strategyData[0], "First SPY return:", spyData[0]);
 
       const ctx = canvas.getContext("2d");
       if(!ctx) {
@@ -224,8 +214,6 @@
         return;
       }
 
-      console.log("Creating chart with", ytdRows.length, "data points");
-      
       try {
         new Chart(ctx, {
         type: "line",
@@ -356,7 +344,6 @@
           }
         }
       });
-      console.log("Chart created successfully");
       } catch(err) {
         console.error("Error creating chart:", err);
         canvas.parentElement.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--muted);">Error rendering chart: ${err.message}</div>`;
@@ -389,49 +376,58 @@
       `;
     }
 
-    function renderYTD(summary, extras){
-      const s = summary || {};
-      
-      // YTD returns summary
-      document.getElementById("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
-      document.getElementById("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
-      
-      // Get 50TLT/50GLD from metrics if available
-      const tltGldYTD = extras?.series?.["Buy & Hold SPY"]?.ytd?.return || 0;
-      document.getElementById("ytdTLTGLD").textContent = fmtPct(tltGldYTD);
-      
-      document.getElementById("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
-      document.getElementById("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
+    function computeYTDFromEquity(equityCSV){
+      const rows = equityCSV?.rows || [];
+      const currentYear = new Date().getFullYear();
+      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
+      if(ytdRows.length < 2) return null;
+      const first = ytdRows[0];
+      const last = ytdRows[ytdRows.length - 1];
+      const series = [
+        { key: "Strategy_Net", col: "Strategy_Net_Eq" },
+        { key: "BuyHold_SPY", col: "BuyHold_SPY_Eq" },
+        { key: "BuyHold_SPY_1.3x_Net", col: "BuyHold_SPY_1.3x_Net_Eq" },
+        { key: "BuyHold_SPY_2.0x_Net", col: "BuyHold_SPY_2.0x_Net_Eq" }
+      ];
+      const out = {};
+      series.forEach(({ key, col }) => {
+        const startVal = Number(first[col]) || 1;
+        const endVal = Number(last[col]) || 1;
+        out[key] = startVal > 0 ? (endVal / startVal) - 1 : 0;
+      });
+      return out;
     }
 
-    function renderGrowthTracker(summary, extras){
-      const s = summary || {};
+    function renderYTD(ytdFromEquity){
+      const fallback = "—";
+      if(!ytdFromEquity){
+        document.getElementById("ytdStrategyMain").textContent = fallback;
+        document.getElementById("ytdSPYMain").textContent = fallback;
+        document.getElementById("ytd13Main").textContent = fallback;
+        document.getElementById("ytd20Main").textContent = fallback;
+        return;
+      }
+      document.getElementById("ytdStrategyMain").textContent = fmtPct(ytdFromEquity.Strategy_Net);
+      document.getElementById("ytdSPYMain").textContent = fmtPct(ytdFromEquity.BuyHold_SPY);
+      document.getElementById("ytd13Main").textContent = fmtPct(ytdFromEquity.BuyHold_SPY_1.3x_Net);
+      document.getElementById("ytd20Main").textContent = fmtPct(ytdFromEquity.BuyHold_SPY_2.0x_Net);
+    }
+
+    function renderGrowthTracker(ytdFromEquity){
       const container = document.getElementById("growthTracker");
       if(!container) return;
+      if(!ytdFromEquity){
+        container.innerHTML = '<p style="font-size: 13px; color: var(--muted); margin: 0;">No YTD data for current year yet.</p>';
+        return;
+      }
 
       const initialInvestment = 1000;
       
       const strategies = [
-        { 
-          label: "Strategy", 
-          ytd: Number(s.Strategy_Net?.YTD) || 0,
-          color: "var(--trading-green)"
-        },
-        { 
-          label: "SPY B&H", 
-          ytd: Number(s.BuyHold_SPY?.YTD) || 0,
-          color: "var(--text)"
-        },
-        { 
-          label: "SPY 1.3x", 
-          ytd: Number(s["BuyHold_SPY_1.3x_Net"]?.YTD) || 0,
-          color: "var(--text)"
-        },
-        { 
-          label: "SPY 2.0x", 
-          ytd: Number(s["BuyHold_SPY_2.0x_Net"]?.YTD) || 0,
-          color: "var(--text)"
-        }
+        { label: "Strategy", ytd: ytdFromEquity.Strategy_Net, color: "var(--trading-green)" },
+        { label: "SPY B&H", ytd: ytdFromEquity.BuyHold_SPY, color: "var(--text)" },
+        { label: "SPY 1.3x", ytd: ytdFromEquity.BuyHold_SPY_1.3x_Net, color: "var(--text)" },
+        { label: "SPY 2.0x", ytd: ytdFromEquity.BuyHold_SPY_2.0x_Net, color: "var(--text)" }
       ];
 
       container.innerHTML = strategies.map(item => {
@@ -483,26 +479,36 @@
     async function main(){
       try {
         const latest = await loadJSON("data/latest.json");
-        const extras = await loadJSON("data/extras.json");
         const equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
         
-        // Date range
-        const ytd = extras?.series?.["Strategy (Net)"]?.ytd;
-        if(ytd && ytd.end){
-          const endDate = new Date(ytd.end).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
+        // Date range from equity curve (last date in data)
+        const rows = equityCSV?.rows || [];
+        const lastRow = rows.filter(r => r.date).pop();
+        if(lastRow?.date){
+          const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
           document.getElementById("portfolioDateRange").textContent = `As of: ${endDate}`;
         }
         
         renderAllocation(latest.recommendation || {});
-        renderYTD(latest.summary || {}, extras);
-        renderGrowthTracker(latest.summary || {}, extras);
+        
+        // YTD and Growth computed from equity curve (single source of truth)
+        const ytdFromEquity = computeYTDFromEquity(equityCSV);
+        renderYTD(ytdFromEquity);
+        renderGrowthTracker(ytdFromEquity);
+        
+        const currentYear = new Date().getFullYear();
+        const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
+        if(ytdRows.length > 0){
+          const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+          const descEl = document.getElementById("growthTrackerDesc");
+          if(descEl) descEl.textContent = `If you invested $1,000 on ${firstYtd} — here's where you'd be today.`;
+        }
         
         // Wait for Chart.js to be available, then render chart
         const renderChart = () => {
           if(typeof Chart !== 'undefined') {
-            renderYTDChart(equityCSV, ytd?.start);
+            renderYTDChart(equityCSV);
           } else {
-            console.log("Waiting for Chart.js...");
             setTimeout(renderChart, 100);
           }
         };

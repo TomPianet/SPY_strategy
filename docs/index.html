@@ -67,7 +67,7 @@
     <section class="performance-section">
       <div class="performance-container">
         <h2 class="performance-title">Beating the market for the past 10+ years</h2>
-        <div class="performance-subtitle" id="performanceDateRange">[TRADABLE_SAMPLE] 2014-10-21 → 2026-02-19</div>
+        <div class="performance-subtitle" id="performanceDateRange">[TRADABLE_SAMPLE] 2014-10-21 → —</div>
         
         <div class="performance-table-wrapper">
           <table class="performance-table">
@@ -165,7 +165,10 @@
 
     async function main(){
       try {
-        const metrics = await loadCSV("data/phase7_metrics_TURBO_BASE.csv");
+        const [metrics, latest] = await Promise.all([
+          loadCSV("data/phase7_metrics_TURBO_BASE.csv"),
+          fetch("data/latest.json", {cache:"no-store"}).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+        ]);
         const rows = metrics.rows.map(r => ({
           Block: (r.Block || "").trim(),
           Series: (r.Series || "").trim(),
@@ -178,6 +181,10 @@
         }));
 
         renderPerformance(rows);
+        
+        const endDate = latest?.last_backtest_date || "";
+        const rangeEl = document.getElementById("performanceDateRange");
+        if(rangeEl) rangeEl.textContent = `[TRADABLE_SAMPLE] 2014-10-21 → ${endDate}`;
       } catch(err) {
         console.error("Error in main:", err);
       }
