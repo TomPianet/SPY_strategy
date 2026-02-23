@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SPY Strategy — Live Portfolio</title>
+  <title>SPY Strategy — Portfolio</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -26,37 +26,37 @@
       </div>
     </nav>
 
-    <!-- Header Section -->
+    <!-- Header -->
     <section style="margin-top: 24px; margin-bottom: 32px;">
-        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Live Portfolio Performance 1</h1>
+      <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">Portfolio analysis</h1>
       <p style="font-size: 16px; color: var(--muted); margin: 0 0 16px; line-height: 1.6;">Year-to-date performance breakdown and current allocation.</p>
       <span class="pill" id="portfolioDateRange" style="font-size: 11px;">As of: —</span>
     </section>
 
-    <!-- Growth of $1,000 -->
+    <!-- 1. YTD Chart (top, like React) -->
     <section class="card" style="margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Growth of $1,000</h2>
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px;">YTD cumulative returns</h2>
+      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Strategy vs all benchmarks — net of costs &amp; financing.</div>
+      <div style="position: relative; height: 360px; width: 100%;" id="ytdChartWrap">
+        <canvas id="ytdChart"></canvas>
+        <div id="ytdChartPlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">Loading chart…</div>
+      </div>
+    </section>
+
+    <!-- 2. Growth of $1,000 -->
+    <section class="card" style="margin-bottom: 24px;">
+      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px;">Growth of $1,000</h2>
       <div class="small" style="margin-bottom: 16px; font-size: 11px;" id="growthTrackerDesc">If you invested $1,000 at the start of YTD — here's where you'd be today.</div>
       <div id="growthTracker" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
-        <!-- Will be populated by JavaScript -->
+        <p style="font-size: 13px; color: var(--muted); margin: 0;">Loading…</p>
       </div>
     </section>
 
-    <!-- YTD Chart -->
-    <section class="card" style="margin-bottom: 24px;">
-      <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">YTD Cumulative Returns</h2>
-      <div class="small" style="margin-bottom: 24px; font-size: 11px;">Strategy vs all benchmarks — net of costs & financing.</div>
-      <div style="position: relative; height: 360px; width: 100%;">
-        <canvas id="ytdChart"></canvas>
-      </div>
-    </section>
-
-    <!-- YTD Summary + Allocation Grid -->
-    <div style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 24px;">
-      <!-- YTD Returns Summary -->
+    <!-- 3. YTD Returns + Allocation (two columns) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
       <section class="card">
-        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">YTD Returns</h2>
-        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Cumulative year-to-date. Computed from equity curve.</div>
+        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px;">YTD returns</h2>
+        <div class="small" style="margin-bottom: 16px; font-size: 11px;">Cumulative year-to-date. From your data.</div>
         <div style="display: flex; flex-direction: column; gap: 0;">
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
             <span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">Strategy (Net)</span>
@@ -77,9 +77,8 @@
         </div>
       </section>
 
-      <!-- Current Allocation -->
       <section class="card">
-        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em;">Current Allocation</h2>
+        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 4px;">Current allocation</h2>
         <div class="small" style="margin-bottom: 16px; font-size: 11px;">Next week weights.</div>
         <div class="tableWrap">
           <table>
@@ -95,490 +94,195 @@
         <div class="small" id="allocationFlags" style="margin-top: 16px; font-size: 11px;"></div>
       </section>
     </div>
-
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     (function(){
-    const fmtPct = (x) => {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return "—";
-      return (n * 100).toFixed(2) + "%";
-    };
-    const fmtNum = (x) => {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return "—";
-      return n.toFixed(2);
-    };
-    const fmtCurrency = (x) => {
-      const n = Number(x);
-      if (!Number.isFinite(n)) return "—";
-      return "$" + n.toFixed(2);
-    };
-
-    async function loadJSON(path){
-      const r = await fetch(path, {cache:"no-store"});
-      if(!r.ok) throw new Error("Cannot load " + path);
-      return await r.json();
-    }
-
-    async function loadCSV(path){
-      const r = await fetch(path, {cache:"no-store"});
-      if(!r.ok) throw new Error("Cannot load " + path);
-      let text = await r.text();
-      if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
-      if(lines.length === 0) return {headers: [], rows: []};
-      
-      const headers = lines[0].split(",").map(h => h.trim().replace(/^\uFEFF/, ""));
-      const rows = lines.slice(1).map(line => {
-        const parts = line.split(",").map(p => p.trim());
-        const obj = {};
-        headers.forEach((h,i)=> {
-          obj[h] = parts[i] || "";
-        });
-        return obj;
-      });
-      return {headers, rows};
-    }
-
-    function renderYTDChart(equityData, ytdYear){
-      const canvas = document.getElementById("ytdChart");
-      if(!canvas) {
-        console.error("Canvas element not found");
-        return;
-      }
-
-      // Check if Chart.js is loaded
-      if(typeof Chart === 'undefined') {
-        console.error("Chart.js not loaded");
-        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart.js failed to load. Please refresh the page.</div>';
-        return;
-      }
-
-      // Filter to YTD data only (year derived from CSV)
-      const currentYear = Number(ytdYear) || new Date().getFullYear();
-      const ytdRows = equityData.rows.filter(r => {
-        if(!r.date) return false;
-        const dateStr = String(r.date);
-        return dateStr.startsWith(String(currentYear));
-      });
-
-      if(ytdRows.length === 0) {
-        canvas.parentElement.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--muted);">No YTD data available for ${currentYear}.</div>`;
-        return;
-      }
-
-      // Get starting values (first day of YTD) for each strategy separately
-      const strategyStartValue = Number(ytdRows[0]?.Strategy_Net_Eq) || 1;
-      const spyStartValue = Number(ytdRows[0]?.BuyHold_SPY_Eq) || 1;
-      const spy13StartValue = Number(ytdRows[0]?.["BuyHold_SPY_1.3x_Net_Eq"]) || 1;
-      const spy20StartValue = Number(ytdRows[0]?.["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
-      
-      // Calculate returns from start
-      const labels = ytdRows.map(r => {
-        const date = new Date(r.date);
-        return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
-      });
-
-      const strategyData = ytdRows.map(r => {
-        const value = Number(r.Strategy_Net_Eq) || strategyStartValue;
-        return ((value / strategyStartValue) - 1) * 100; // Return as percentage
-      });
-
-      const spyData = ytdRows.map(r => {
-        const value = Number(r.BuyHold_SPY_Eq) || spyStartValue;
-        return ((value / spyStartValue) - 1) * 100;
-      });
-
-      const spy13Data = ytdRows.map(r => {
-        const value = Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || spy13StartValue;
-        return ((value / spy13StartValue) - 1) * 100;
-      });
-
-      const spy20Data = ytdRows.map(r => {
-        const value = Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || spy20StartValue;
-        return ((value / spy20StartValue) - 1) * 100;
-      });
-
-      const ctx = canvas.getContext("2d");
-      if(!ctx) {
-        console.error("Could not get canvas context");
-        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Could not initialize chart canvas.</div>';
-        return;
-      }
-
-      if(typeof Chart === 'undefined') {
-        console.error("Chart.js not loaded");
-        canvas.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart.js library not loaded. Please refresh the page.</div>';
-        return;
-      }
-
-      try {
-        new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Strategy (Net)",
-              data: strategyData,
-              borderColor: "hsl(142 72% 45%)",
-              backgroundColor: "hsl(142 72% 45% / 0.08)",
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 4,
-              pointBackgroundColor: "hsl(142 72% 45%)",
-              borderWidth: 2.5,
-              fill: true,
-            },
-            {
-              label: "SPY B&H",
-              data: spyData,
-              borderColor: "hsl(215 12% 50%)",
-              backgroundColor: "hsl(215 12% 50% / 0.05)",
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 4,
-              pointBackgroundColor: "hsl(215 12% 50%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
-              fill: false,
-            },
-            {
-              label: "SPY 1.3x",
-              data: spy13Data,
-              borderColor: "hsl(142 72% 55%)",
-              backgroundColor: "transparent",
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 4,
-              pointBackgroundColor: "hsl(142 72% 55%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
-              fill: false,
-            },
-            {
-              label: "SPY 2.0x",
-              data: spy20Data,
-              borderColor: "hsl(0 72% 55%)",
-              backgroundColor: "transparent",
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 4,
-              pointBackgroundColor: "hsl(0 72% 55%)",
-              borderWidth: 1.5,
-              borderDash: [4, 2],
-              fill: false,
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {mode: "index", intersect: false},
-          plugins: {
-            legend: {
-              labels: {
-                color: "hsl(210 20% 92%)",
-                font: {family: "'JetBrains Mono', monospace", size: 11},
-                padding: 12,
-                usePointStyle: true,
-                pointStyle: 'line'
-              },
-              position: 'top',
-              align: 'end'
-            },
-            tooltip: {
-              backgroundColor: "hsl(220 18% 10% / 0.95)",
-              borderColor: "hsl(220 14% 18%)",
-              borderWidth: 1,
-              padding: 10,
-              titleColor: "hsl(210 20% 92%)",
-              bodyColor: "hsl(210 20% 92%)",
-              titleFont: {family: "'JetBrains Mono', monospace", size: 11},
-              bodyFont: {family: "'JetBrains Mono', monospace", size: 11},
-              callbacks: {
-                label: (item) => {
-                  const value = Number(item.raw);
-                  const sign = value >= 0 ? "+" : "";
-                  return `${item.dataset.label}: ${sign}${value.toFixed(2)}%`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                color: "hsl(215 12% 50%)",
-                maxTicksLimit: 10,
-                font: {family: "'JetBrains Mono', monospace", size: 11}
-              },
-              grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false,
-                lineWidth: 1
-              },
-              axisLine: {
-                color: "hsl(220 14% 18%)"
-              }
-            },
-            y: {
-              ticks: {
-                color: "hsl(215 12% 50%)",
-                font: {family: "'JetBrains Mono', monospace", size: 11},
-                callback: function(value) {
-                  return value >= 0 ? "+" + value.toFixed(1) + "%" : value.toFixed(1) + "%";
-                }
-              },
-              grid: {
-                color: "hsl(220 14% 18%)",
-                drawBorder: false,
-                lineWidth: 1
-              },
-              axisLine: {
-                color: "hsl(220 14% 18%)"
-              },
-              beginAtZero: false
-            }
-          }
-        }
-      });
-      } catch(err) {
-        console.error("Error creating chart:", err);
-        canvas.parentElement.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--muted);">Error rendering chart: ${err.message}</div>`;
-      }
-    }
-
-    function renderAllocation(reco){
-      const w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
-
-      const body = document.getElementById("allocationBody");
-      body.innerHTML = "";
-      ["SPY","TLT","GLD","BIL"].forEach(a => {
-        const weight = Number(w[a]);
-        const tr = document.createElement("tr");
-        const weightClass = weight < 0 ? "stat-value-red" : "stat-value-green";
-        
-        tr.innerHTML = `
-          <td class="mono" style="font-weight: 500; font-size: 13px; padding: 10px 0;">${a}</td>
-          <td class="right mono ${weightClass}" style="font-weight: 600; font-size: 13px; padding: 10px 0;">${(weight * 100).toFixed(2)}%</td>
-        `;
-        body.appendChild(tr);
-      });
-
-      const levOn = !!reco.leverage;
-      const risky = (reco.risky_gross !== undefined) ? Number(reco.risky_gross).toFixed(4) : "—";
-
-      document.getElementById("allocationFlags").innerHTML = `
-        <span style="color: var(--trading-green); font-weight: 600;">${levOn ? "Leverage ON" : "Leverage OFF"}</span>
-        <span class="muted"> · risky gross: <span class="mono">${risky}x</span></span>
-      `;
-    }
-
-    function computeYTDFromEquity(equityCSV, ytdYear){
-      const rows = equityCSV?.rows || [];
-      const currentYear = Number(ytdYear) || new Date().getFullYear();
-      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(currentYear)));
-      if(ytdRows.length < 1) return null;
-      const first = ytdRows[0];
-      const last = ytdRows[ytdRows.length - 1];
-      const series = [
-        { key: "Strategy_Net", col: "Strategy_Net_Eq" },
-        { key: "BuyHold_SPY", col: "BuyHold_SPY_Eq" },
-        { key: "BuyHold_SPY_1.3x_Net", col: "BuyHold_SPY_1.3x_Net_Eq" },
-        { key: "BuyHold_SPY_2.0x_Net", col: "BuyHold_SPY_2.0x_Net_Eq" }
-      ];
-      const out = {};
-      series.forEach(({ key, col }) => {
-        const startVal = Number(first[col]) || 1;
-        const endVal = Number(last[col]) || 1;
-        out[key] = startVal > 0 ? (endVal / startVal) - 1 : 0;
-      });
-      return out;
-    }
-
-    function renderYTD(ytdFromEquity){
-      const fallback = "—";
-      const set = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
-      if(!ytdFromEquity){
-        set("ytdStrategyMain", fallback);
-        set("ytdSPYMain", fallback);
-        set("ytd13Main", fallback);
-        set("ytd20Main", fallback);
-        return;
-      }
-      set("ytdStrategyMain", fmtPct(ytdFromEquity.Strategy_Net));
-      set("ytdSPYMain", fmtPct(ytdFromEquity.BuyHold_SPY));
-      set("ytd13Main", fmtPct(ytdFromEquity.BuyHold_SPY_1.3x_Net));
-      set("ytd20Main", fmtPct(ytdFromEquity.BuyHold_SPY_2.0x_Net));
-    }
-
-    function renderGrowthTracker(ytdFromEquity){
-      const container = document.getElementById("growthTracker");
-      if(!container) return;
-      if(!ytdFromEquity){
-        container.innerHTML = '<p style="font-size: 13px; color: var(--muted); margin: 0;">No YTD data for current year yet.</p>';
-        return;
-      }
-
-      const initialInvestment = 1000;
-      
-      const strategies = [
-        { label: "Strategy", ytd: ytdFromEquity.Strategy_Net, color: "var(--trading-green)" },
-        { label: "SPY B&H", ytd: ytdFromEquity.BuyHold_SPY, color: "var(--text)" },
-        { label: "SPY 1.3x", ytd: ytdFromEquity.BuyHold_SPY_1.3x_Net, color: "var(--text)" },
-        { label: "SPY 2.0x", ytd: ytdFromEquity.BuyHold_SPY_2.0x_Net, color: "var(--text)" }
-      ];
-
-      container.innerHTML = strategies.map(item => {
-        const endValue = initialInvestment * (1 + item.ytd);
-        const diff = endValue - initialInvestment;
-        const isPositive = diff >= 0;
-        const valueColor = item.label === "Strategy" ? "var(--trading-green)" : (isPositive ? "var(--text)" : "var(--trading-red)");
-        const diffColor = isPositive ? "var(--trading-green)" : "var(--trading-red)";
-        
-        return `
-          <div style="text-align: center;">
-            <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px;">${item.label}</p>
-            <p style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${valueColor}; margin: 0 0 4px;">
-              ${fmtCurrency(endValue)}
-            </p>
-            <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: ${diffColor}; margin: 0;">
-              ${isPositive ? "+" : ""}${fmtCurrency(diff)}
-            </p>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderMetrics(extras){
-      const e = extras?.series?.["Strategy (Net)"] || {};
-      
-      // Win rate
-      if(e.win_rate_daily !== undefined){
-        document.getElementById("winRate").textContent = fmtPct(e.win_rate_daily);
-      }
-      
-      // Best/Worst year
-      if(e.best_worst_year?.best){
-        const best = e.best_worst_year.best;
-        document.getElementById("bestYear").textContent = `${best.year}: ${fmtPct(best.return)}`;
-      }
-      
-      if(e.best_worst_year?.worst){
-        const worst = e.best_worst_year.worst;
-        document.getElementById("worstYear").textContent = `${worst.year}: ${fmtPct(worst.return)}`;
-      }
-      
-      // Max drawdown
-      if(e.max_drawdown?.maxdd !== undefined){
-        document.getElementById("maxDD").textContent = fmtPct(e.max_drawdown.maxdd);
-      }
-    }
-
-    async function main(){
-      let latest = null;
-      let equityCSV = null;
-      try {
-        latest = await loadJSON("data/latest.json");
-      } catch(e) {
-        console.error("Could not load latest.json:", e);
-      }
-      try {
-        equityCSV = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
-      } catch(e) {
-        console.error("Could not load equity curve CSV:", e);
-      }
-
-      const el = (id) => document.getElementById(id);
-      
-      if(latest?.recommendation) renderAllocation(latest.recommendation);
-      
-      if(!equityCSV?.rows?.length) {
-        const dateEl = el("portfolioDateRange");
-        if(dateEl) dateEl.textContent = latest?.last_backtest_date
-          ? "As of: " + new Date(latest.last_backtest_date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'})
-          : "As of: —";
-        if(latest?.summary) {
-          const s = latest.summary;
-          if(el("ytdStrategyMain")) el("ytdStrategyMain").textContent = fmtPct(s.Strategy_Net?.YTD);
-          if(el("ytdSPYMain")) el("ytdSPYMain").textContent = fmtPct(s.BuyHold_SPY?.YTD);
-          if(el("ytd13Main")) el("ytd13Main").textContent = fmtPct(s["BuyHold_SPY_1.3x_Net"]?.YTD);
-          if(el("ytd20Main")) el("ytd20Main").textContent = fmtPct(s["BuyHold_SPY_2.0x_Net"]?.YTD);
-          renderGrowthTrackerFromSummary(s);
-        } else {
-          const growthEl = el("growthTracker");
-          if(growthEl) growthEl.innerHTML = '<p style="font-size: 13px; color: var(--muted);">Data could not be loaded. Check that <span class="mono">data/latest.json</span> and <span class="mono">data/equity_curve_TURBO_phase7_BASE.csv</span> exist and refresh.</p>';
-          const chartEl = el("ytdChart");
-          if(chartEl && chartEl.parentElement) chartEl.parentElement.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--muted);">Chart data could not be loaded. Check data files.</div>';
-        }
-        return;
-      }
-      
-      const rows = equityCSV.rows;
-      const lastRow = rows.filter(r => r.date).pop();
-      const ytdYear = lastRow?.date ? Number(String(lastRow.date).slice(0, 4)) : new Date().getFullYear();
-      if(lastRow?.date){
-        const endDate = new Date(lastRow.date).toLocaleDateString('en-US', {year: 'numeric', month: 'short', day: 'numeric'});
-        const dateEl = el("portfolioDateRange");
-        if(dateEl) dateEl.textContent = `As of: ${endDate}`;
-      }
-      
-      const ytdFromEquity = computeYTDFromEquity(equityCSV, ytdYear);
-      renderYTD(ytdFromEquity);
-      renderGrowthTracker(ytdFromEquity);
-      
-      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
-      if(ytdRows.length > 0){
-        const firstYtd = new Date(ytdRows[0].date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
-        const descEl = el("growthTrackerDesc");
-        if(descEl) descEl.textContent = `If you invested $1,000 on ${firstYtd} — here's where you'd be today.`;
-      }
-      
-      const renderChart = () => {
-        if(typeof Chart !== 'undefined') {
-          renderYTDChart(equityCSV, ytdYear);
-        } else {
-          setTimeout(renderChart, 100);
-        }
+      var fmtPct = function(x){
+        var n = Number(x);
+        if (!Number.isFinite(n)) return "—";
+        return (n * 100).toFixed(2) + "%";
       };
-      setTimeout(renderChart, 200);
-    }
-    
-    function renderGrowthTrackerFromSummary(summary){
-      const container = document.getElementById("growthTracker");
-      if(!container || !summary) return;
-      const initialInvestment = 1000;
-      const strategies = [
-        { label: "Strategy", ytd: Number(summary.Strategy_Net?.YTD) || 0 },
-        { label: "SPY B&H", ytd: Number(summary.BuyHold_SPY?.YTD) || 0 },
-        { label: "SPY 1.3x", ytd: Number(summary["BuyHold_SPY_1.3x_Net"]?.YTD) || 0 },
-        { label: "SPY 2.0x", ytd: Number(summary["BuyHold_SPY_2.0x_Net"]?.YTD) || 0 }
-      ];
-      container.innerHTML = strategies.map(item => {
-        const endValue = initialInvestment * (1 + item.ytd);
-        const diff = endValue - initialInvestment;
-        const isPositive = diff >= 0;
-        const valueColor = item.label === "Strategy" ? "var(--trading-green)" : (isPositive ? "var(--text)" : "var(--trading-red)");
-        const diffColor = isPositive ? "var(--trading-green)" : "var(--trading-red)";
-        return `<div style="text-align: center;">
-          <p style="font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 8px;">${item.label}</p>
-          <p style="font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${valueColor}; margin: 0 0 4px;">${fmtCurrency(endValue)}</p>
-          <p style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: ${diffColor}; margin: 0;">${isPositive ? "+" : ""}${fmtCurrency(diff)}</p>
-        </div>`;
-      }).join("");
-    }
+      var fmtCurrency = function(x){
+        var n = Number(x);
+        if (!Number.isFinite(n)) return "—";
+        return "$" + n.toFixed(2);
+      };
+      function el(id){ return document.getElementById(id); }
+      function setText(id, val){ var e = el(id); if(e) e.textContent = val; }
 
-    main().catch(err => {
-      console.error("Fatal error:", err);
-      var g = document.getElementById("growthTracker");
-      if(g) g.innerHTML = "<p style=\"color:var(--muted);font-size:13px;\">Error loading data: " + (err && err.message ? err.message : "unknown") + "</p>";
-    });
+      function loadJSON(path){
+        return fetch(path, {cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.json(); });
+      }
+      function loadCSV(path){
+        return fetch(path, {cache:"no-store"})
+          .then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.text(); })
+          .then(function(text){
+            if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+            var lines = text.trim().split(/\r?\n/).filter(function(l){ return l.trim(); });
+            if(lines.length === 0) return {headers:[], rows:[]};
+            var headers = lines[0].split(",").map(function(h){ return h.trim().replace(/^\uFEFF/, ""); });
+            var rows = lines.slice(1).map(function(line){
+              var parts = line.split(",").map(function(p){ return p.trim(); });
+              var obj = {};
+              headers.forEach(function(h,i){ obj[h] = parts[i] || ""; });
+              return obj;
+            });
+            return {headers: headers, rows: rows};
+          });
+      }
+
+      function computeYTDFromEquity(rows, ytdYear){
+        var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
+        if(ytdRows.length < 1) return null;
+        var first = ytdRows[0], last = ytdRows[ytdRows.length - 1];
+        var cols = ["Strategy_Net_Eq","BuyHold_SPY_Eq","BuyHold_SPY_1.3x_Net_Eq","BuyHold_SPY_2.0x_Net_Eq"];
+        var keys = ["Strategy_Net","BuyHold_SPY","BuyHold_SPY_1.3x_Net","BuyHold_SPY_2.0x_Net"];
+        var out = {};
+        cols.forEach(function(col, i){
+          var s = Number(first[col]) || 1, e = Number(last[col]) || 1;
+          out[keys[i]] = s > 0 ? (e / s) - 1 : 0;
+        });
+        return out;
+      }
+
+      function renderAllocation(reco){
+        var body = el("allocationBody");
+        if(!body) return;
+        body.innerHTML = "";
+        var w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
+        ["SPY","TLT","GLD","BIL"].forEach(function(a){
+          var weight = Number(w[a]);
+          var tr = document.createElement("tr");
+          var cls = weight < 0 ? "stat-value-red" : "stat-value-green";
+          tr.innerHTML = "<td class=\"mono\" style=\"font-weight:500;font-size:13px;padding:10px 0;\">" + a + "</td><td class=\"right mono " + cls + "\" style=\"font-weight:600;font-size:13px;padding:10px 0;\">" + (weight * 100).toFixed(2) + "%</td>";
+          body.appendChild(tr);
+        });
+        var flags = el("allocationFlags");
+        if(flags) flags.innerHTML = "<span style=\"color:var(--trading-green);font-weight:600;\">" + (reco.leverage ? "Leverage ON" : "Leverage OFF") + "</span><span class=\"muted\"> · risky gross: <span class=\"mono\">" + (reco.risky_gross != null ? Number(reco.risky_gross).toFixed(4) : "—") + "x</span></span>";
+      }
+
+      function renderYTD(pctObj){
+        if(!pctObj) return;
+        setText("ytdStrategyMain", fmtPct(pctObj.Strategy_Net));
+        setText("ytdSPYMain", fmtPct(pctObj.BuyHold_SPY));
+        setText("ytd13Main", fmtPct(pctObj.BuyHold_SPY_1.3x_Net));
+        setText("ytd20Main", fmtPct(pctObj.BuyHold_SPY_2.0x_Net));
+        var setClass = function(id, val){
+          var e = el(id); if(!e) return;
+          var n = Number(val); e.className = "stat-value " + (n >= 0 ? "stat-value-green" : "stat-value-red");
+        };
+        setClass("ytdSPYMain", pctObj.BuyHold_SPY);
+        setClass("ytd13Main", pctObj.BuyHold_SPY_1.3x_Net);
+        setClass("ytd20Main", pctObj.BuyHold_SPY_2.0x_Net);
+      }
+
+      function renderGrowth(ytdObj, firstDateStr){
+        var c = el("growthTracker");
+        if(!c) return;
+        if(!ytdObj){ c.innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">No YTD data.</p>"; return; }
+        var items = [
+          { label: "Strategy", ytd: ytdObj.Strategy_Net },
+          { label: "SPY B&H", ytd: ytdObj.BuyHold_SPY },
+          { label: "SPY 1.3x", ytd: ytdObj.BuyHold_SPY_1.3x_Net },
+          { label: "SPY 2.0x", ytd: ytdObj.BuyHold_SPY_2.0x_Net }
+        ];
+        var html = items.map(function(item){
+          var endVal = 1000 * (1 + item.ytd), diff = endVal - 1000;
+          var valColor = item.label === "Strategy" ? "var(--trading-green)" : (diff >= 0 ? "var(--text)" : "var(--trading-red)");
+          var diffColor = diff >= 0 ? "var(--trading-green)" : "var(--trading-red)";
+          return "<div style=\"text-align:center;\"><p style=\"font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin:0 0 8px;\">" + item.label + "</p><p style=\"font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:" + valColor + ";margin:0 0 4px;\">" + fmtCurrency(endVal) + "</p><p style=\"font-size:11px;font-family:'JetBrains Mono',monospace;color:" + diffColor + ";margin:0;\">" + (diff >= 0 ? "+" : "") + fmtCurrency(diff) + "</p></div>";
+        }).join("");
+        c.innerHTML = html;
+        if(firstDateStr){ var d = el("growthTrackerDesc"); if(d) d.textContent = "If you invested $1,000 on " + firstDateStr + " — here's where you'd be today."; }
+      }
+
+      function renderChart(rows, ytdYear){
+        var canvas = el("ytdChart");
+        var placeholder = el("ytdChartPlaceholder");
+        if(!canvas || !canvas.parentNode) return;
+        if(placeholder) placeholder.style.display = "none";
+        var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
+        if(ytdRows.length === 0){
+          if(canvas.parentNode) canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">No YTD data for " + ytdYear + ".</div>";
+          return;
+        }
+        var s0 = ytdRows[0], strat0 = Number(s0.Strategy_Net_Eq) || 1, spy0 = Number(s0.BuyHold_SPY_Eq) || 1, s13_0 = Number(s0["BuyHold_SPY_1.3x_Net_Eq"]) || 1, s20_0 = Number(s0["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
+        var labels = ytdRows.map(function(r){ var d = new Date(r.date); return d.toLocaleDateString("en-US", {month:"short", day:"numeric"}); });
+        var strat = ytdRows.map(function(r){ var v = Number(r.Strategy_Net_Eq) || strat0; return ((v/strat0)-1)*100; });
+        var spy = ytdRows.map(function(r){ var v = Number(r.BuyHold_SPY_Eq) || spy0; return ((v/spy0)-1)*100; });
+        var spy13 = ytdRows.map(function(r){ var v = Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || s13_0; return ((v/s13_0)-1)*100; });
+        var spy20 = ytdRows.map(function(r){ var v = Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || s20_0; return ((v/s20_0)-1)*100; });
+        if(typeof Chart === "undefined"){ canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">Chart.js not loaded.</div>"; return; }
+        try {
+          new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                { label: "Strategy (Net)", data: strat, borderColor: "hsl(142 72% 45%)", backgroundColor: "hsla(142,72%,45%,0.08)", borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 0 },
+                { label: "SPY B&H", data: spy, borderColor: "hsl(215 12% 50%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 },
+                { label: "SPY 1.3x", data: spy13, borderColor: "hsl(187 80% 52%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 },
+                { label: "SPY 2.0x", data: spy20, borderColor: "hsl(0 72% 55%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: { legend: { display: true }, tooltip: { callbacks: { label: function(it){ return it.dataset.label + ": " + (Number(it.raw) >= 0 ? "+" : "") + Number(it.raw).toFixed(2) + "%"; } } } },
+              scales: {
+                x: { ticks: { color: "hsl(215 12% 50%)", maxTicksLimit: 10 }, grid: { color: "hsla(220,14%,18%,0.5)" } },
+                y: { ticks: { color: "hsl(215 12% 50%)", callback: function(v){ return v + "%"; } }, grid: { color: "hsla(220,14%,18%,0.5)" } }
+              }
+            }
+          });
+        } catch(e) {
+          canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">Chart error: " + (e.message || "unknown") + "</div>";
+        }
+      }
+
+      function run(){
+        loadJSON("data/latest.json").then(function(latest){
+          var rec = latest.recommendation;
+          if(rec) renderAllocation(rec);
+          var d = latest.last_backtest_date;
+          setText("portfolioDateRange", d ? "As of: " + new Date(d).toLocaleDateString("en-US", {year:"numeric", month:"short", day:"numeric"}) : "As of: —");
+          var s = latest.summary;
+          if(s){
+            var pct = { Strategy_Net: s.Strategy_Net && s.Strategy_Net.YTD, BuyHold_SPY: s.BuyHold_SPY && s.BuyHold_SPY.YTD, BuyHold_SPY_1.3x_Net: s["BuyHold_SPY_1.3x_Net"] && s["BuyHold_SPY_1.3x_Net"].YTD, BuyHold_SPY_2.0x_Net: s["BuyHold_SPY_2.0x_Net"] && s["BuyHold_SPY_2.0x_Net"].YTD };
+            renderYTD(pct);
+            renderGrowth(pct, null);
+          }
+          loadCSV("data/equity_curve_TURBO_phase7_BASE.csv").then(function(csv){
+            var rows = csv.rows || [];
+            if(rows.length === 0) return;
+            var lastRow = rows.filter(function(r){ return r.date; }).pop();
+            var ytdYear = lastRow && lastRow.date ? parseInt(String(lastRow.date).slice(0,4), 10) : new Date().getFullYear();
+            var ytdFromEq = computeYTDFromEquity(rows, ytdYear);
+            if(ytdFromEq){
+              renderYTD(ytdFromEq);
+              renderGrowth(ytdFromEq, null);
+              var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
+              if(ytdRows.length > 0){ var firstD = new Date(ytdRows[0].date).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}); var desc = el("growthTrackerDesc"); if(desc) desc.textContent = "If you invested $1,000 on " + firstD + " — here's where you'd be today."; }
+            }
+            setTimeout(function(){ renderChart(rows, ytdYear); }, 100);
+          }).catch(function(){
+            var ph = el("ytdChartPlaceholder");
+            if(ph) ph.textContent = "Chart: equity curve file could not be loaded.";
+          });
+        }).catch(function(err){
+          setText("portfolioDateRange", "As of: —");
+          el("growthTracker").innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">Could not load data. Check data/latest.json.</p>";
+          var ph = el("ytdChartPlaceholder");
+          if(ph) ph.textContent = "Data could not be loaded.";
+          console.error(err);
+        });
+      }
+      if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+      else run();
     })();
   </script>
 </body>
 </html>
-
