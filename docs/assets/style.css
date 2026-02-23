@@ -4,6 +4,7 @@
   --muted: hsl(215 12% 50%);
   --text: hsl(210 20% 92%);
   --accent: hsl(142 72% 45%);
+  --accent-soft: hsl(142 72% 45% / 0.5);
   --border: hsl(220 14% 18%);
   --good: hsl(142 72% 45%);
   --warn: hsl(45 90% 55%);
