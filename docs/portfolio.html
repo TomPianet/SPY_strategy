@@ -96,194 +96,257 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script>
-    (function(){
-      var fmtPct = function(x){
-        var n = Number(x);
-        if (!Number.isFinite(n)) return "—";
-        return (n * 100).toFixed(2) + "%";
+  <script type="module">
+    const fmtPct = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return (n * 100).toFixed(2) + "%";
+    };
+
+    const fmtCurrency = (x) => {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "—";
+      return "$" + n.toFixed(2);
+    };
+
+    const el = (id) => document.getElementById(id);
+    const setText = (id, val) => { const e = el(id); if (e) e.textContent = val; };
+
+    async function loadJSON(path){
+      const r = await fetch(path, {cache: "no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      return r.json();
+    }
+
+    async function loadCSV(path){
+      const r = await fetch(path, {cache: "no-store"});
+      if(!r.ok) throw new Error("Cannot load " + path);
+      let text = await r.text();
+      if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+      if(lines.length === 0) return {headers: [], rows: []};
+      const headers = lines[0].split(",").map(h => h.trim().replace(/^\uFEFF/, ""));
+      const rows = lines.slice(1).map(line => {
+        const parts = line.split(",").map(p => p.trim());
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = parts[i] || ""; });
+        return obj;
+      });
+      return {headers, rows};
+    }
+
+    function computeYTDFromEquity(rows, ytdYear){
+      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
+      if(ytdRows.length < 1) return null;
+      const first = ytdRows[0];
+      const last = ytdRows[ytdRows.length - 1];
+      const cols = ["Strategy_Net_Eq", "BuyHold_SPY_Eq", "BuyHold_SPY_1.3x_Net_Eq", "BuyHold_SPY_2.0x_Net_Eq"];
+      const keys = ["Strategy_Net", "BuyHold_SPY", "BuyHold_SPY_1.3x_Net", "BuyHold_SPY_2.0x_Net"];
+      const out = {};
+      cols.forEach((col, i) => {
+        const s = Number(first[col]) || 1;
+        const e = Number(last[col]) || 1;
+        out[keys[i]] = s > 0 ? (e / s) - 1 : 0;
+      });
+      return out;
+    }
+
+    function renderAllocation(reco){
+      const body = el("allocationBody");
+      if(!body) return;
+      body.innerHTML = "";
+      const w = (reco && reco.weights) || {SPY: 0, TLT: 0, GLD: 0, BIL: 1};
+      ["SPY", "TLT", "GLD", "BIL"].forEach((a) => {
+        const weight = Number(w[a]);
+        const tr = document.createElement("tr");
+        const cls = weight < 0 ? "stat-value-red" : "stat-value-green";
+        tr.innerHTML = `<td class="mono" style="font-weight:500;font-size:13px;padding:10px 0;">${a}</td><td class="right mono ${cls}" style="font-weight:600;font-size:13px;padding:10px 0;">${(weight * 100).toFixed(2)}%</td>`;
+        body.appendChild(tr);
+      });
+      const flags = el("allocationFlags");
+      if(flags){
+        flags.innerHTML = `<span style="color:var(--trading-green);font-weight:600;">${reco && reco.leverage ? "Leverage ON" : "Leverage OFF"}</span><span class="muted"> · risky gross: <span class="mono">${reco && reco.risky_gross != null ? Number(reco.risky_gross).toFixed(4) : "—"}x</span></span>`;
+      }
+    }
+
+    function renderYTD(pctObj){
+      if(!pctObj) return;
+      setText("ytdStrategyMain", fmtPct(pctObj.Strategy_Net));
+      setText("ytdSPYMain", fmtPct(pctObj.BuyHold_SPY));
+      setText("ytd13Main", fmtPct(pctObj.BuyHold_SPY_1.3x_Net));
+      setText("ytd20Main", fmtPct(pctObj.BuyHold_SPY_2.0x_Net));
+      const setClass = (id, val) => {
+        const e = el(id);
+        if(!e) return;
+        const n = Number(val);
+        e.className = "mono stat-value " + (n >= 0 ? "stat-value-green" : "stat-value-red");
       };
-      var fmtCurrency = function(x){
-        var n = Number(x);
-        if (!Number.isFinite(n)) return "—";
-        return "$" + n.toFixed(2);
-      };
-      function el(id){ return document.getElementById(id); }
-      function setText(id, val){ var e = el(id); if(e) e.textContent = val; }
+      setClass("ytdSPYMain", pctObj.BuyHold_SPY);
+      setClass("ytd13Main", pctObj.BuyHold_SPY_1.3x_Net);
+      setClass("ytd20Main", pctObj.BuyHold_SPY_2.0x_Net);
+    }
 
-      function loadJSON(path){
-        return fetch(path, {cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.json(); });
+    function renderGrowth(ytdObj, firstDateStr){
+      const c = el("growthTracker");
+      if(!c) return;
+      if(!ytdObj){
+        c.innerHTML = '<p style="font-size:13px;color:var(--muted);">No YTD data.</p>';
+        return;
       }
-      function loadCSV(path){
-        return fetch(path, {cache:"no-store"})
-          .then(function(r){ if(!r.ok) throw new Error("Cannot load " + path); return r.text(); })
-          .then(function(text){
-            if(text.length && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-            var lines = text.trim().split(/\r?\n/).filter(function(l){ return l.trim(); });
-            if(lines.length === 0) return {headers:[], rows:[]};
-            var headers = lines[0].split(",").map(function(h){ return h.trim().replace(/^\uFEFF/, ""); });
-            var rows = lines.slice(1).map(function(line){
-              var parts = line.split(",").map(function(p){ return p.trim(); });
-              var obj = {};
-              headers.forEach(function(h,i){ obj[h] = parts[i] || ""; });
-              return obj;
-            });
-            return {headers: headers, rows: rows};
-          });
+      const items = [
+        { label: "Strategy", ytd: ytdObj.Strategy_Net },
+        { label: "SPY B&H", ytd: ytdObj.BuyHold_SPY },
+        { label: "SPY 1.3x", ytd: ytdObj.BuyHold_SPY_1.3x_Net },
+        { label: "SPY 2.0x", ytd: ytdObj.BuyHold_SPY_2.0x_Net }
+      ];
+      c.innerHTML = items.map((item) => {
+        const endVal = 1000 * (1 + item.ytd);
+        const diff = endVal - 1000;
+        const valColor = item.label === "Strategy" ? "var(--trading-green)" : (diff >= 0 ? "var(--text)" : "var(--trading-red)");
+        const diffColor = diff >= 0 ? "var(--trading-green)" : "var(--trading-red)";
+        return `<div style="text-align:center;"><p style="font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin:0 0 8px;">${item.label}</p><p style="font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${valColor};margin:0 0 4px;">${fmtCurrency(endVal)}</p><p style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${diffColor};margin:0;">${diff >= 0 ? "+" : ""}${fmtCurrency(diff)}</p></div>`;
+      }).join("");
+      if(firstDateStr){
+        const d = el("growthTrackerDesc");
+        if(d) d.textContent = `If you invested $1,000 on ${firstDateStr} — here's where you'd be today.`;
       }
+    }
 
-      function computeYTDFromEquity(rows, ytdYear){
-        var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
-        if(ytdRows.length < 1) return null;
-        var first = ytdRows[0], last = ytdRows[ytdRows.length - 1];
-        var cols = ["Strategy_Net_Eq","BuyHold_SPY_Eq","BuyHold_SPY_1.3x_Net_Eq","BuyHold_SPY_2.0x_Net_Eq"];
-        var keys = ["Strategy_Net","BuyHold_SPY","BuyHold_SPY_1.3x_Net","BuyHold_SPY_2.0x_Net"];
-        var out = {};
-        cols.forEach(function(col, i){
-          var s = Number(first[col]) || 1, e = Number(last[col]) || 1;
-          out[keys[i]] = s > 0 ? (e / s) - 1 : 0;
-        });
-        return out;
+    function renderChart(rows, ytdYear){
+      const canvas = el("ytdChart");
+      const placeholder = el("ytdChartPlaceholder");
+      if(!canvas || !canvas.parentNode) return;
+      const ytdRows = rows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
+      if(ytdRows.length === 0){
+        if(placeholder) placeholder.textContent = `No YTD data for ${ytdYear}.`;
+        return;
       }
-
-      function renderAllocation(reco){
-        var body = el("allocationBody");
-        if(!body) return;
-        body.innerHTML = "";
-        var w = reco.weights || {SPY:0,TLT:0,GLD:0,BIL:1};
-        ["SPY","TLT","GLD","BIL"].forEach(function(a){
-          var weight = Number(w[a]);
-          var tr = document.createElement("tr");
-          var cls = weight < 0 ? "stat-value-red" : "stat-value-green";
-          tr.innerHTML = "<td class=\"mono\" style=\"font-weight:500;font-size:13px;padding:10px 0;\">" + a + "</td><td class=\"right mono " + cls + "\" style=\"font-weight:600;font-size:13px;padding:10px 0;\">" + (weight * 100).toFixed(2) + "%</td>";
-          body.appendChild(tr);
-        });
-        var flags = el("allocationFlags");
-        if(flags) flags.innerHTML = "<span style=\"color:var(--trading-green);font-weight:600;\">" + (reco.leverage ? "Leverage ON" : "Leverage OFF") + "</span><span class=\"muted\"> · risky gross: <span class=\"mono\">" + (reco.risky_gross != null ? Number(reco.risky_gross).toFixed(4) : "—") + "x</span></span>";
+      if(typeof Chart === "undefined"){
+        if(placeholder) placeholder.textContent = "Chart unavailable right now.";
+        return;
       }
 
-      function renderYTD(pctObj){
-        if(!pctObj) return;
-        setText("ytdStrategyMain", fmtPct(pctObj.Strategy_Net));
-        setText("ytdSPYMain", fmtPct(pctObj.BuyHold_SPY));
-        setText("ytd13Main", fmtPct(pctObj.BuyHold_SPY_1.3x_Net));
-        setText("ytd20Main", fmtPct(pctObj.BuyHold_SPY_2.0x_Net));
-        var setClass = function(id, val){
-          var e = el(id); if(!e) return;
-          var n = Number(val); e.className = "mono stat-value " + (n >= 0 ? "stat-value-green" : "stat-value-red");
-        };
-        setClass("ytdSPYMain", pctObj.BuyHold_SPY);
-        setClass("ytd13Main", pctObj.BuyHold_SPY_1.3x_Net);
-        setClass("ytd20Main", pctObj.BuyHold_SPY_2.0x_Net);
-      }
+      if(placeholder) placeholder.style.display = "none";
+      const s0 = ytdRows[0];
+      const strat0 = Number(s0.Strategy_Net_Eq) || 1;
+      const spy0 = Number(s0.BuyHold_SPY_Eq) || 1;
+      const s13_0 = Number(s0["BuyHold_SPY_1.3x_Net_Eq"]) || 1;
+      const s20_0 = Number(s0["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
+      const labels = ytdRows.map(r => new Date(r.date).toLocaleDateString("en-US", {month: "short", day: "numeric"}));
+      const strat = ytdRows.map(r => ((Number(r.Strategy_Net_Eq) || strat0) / strat0 - 1) * 100);
+      const spy = ytdRows.map(r => ((Number(r.BuyHold_SPY_Eq) || spy0) / spy0 - 1) * 100);
+      const spy13 = ytdRows.map(r => ((Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || s13_0) / s13_0 - 1) * 100);
+      const spy20 = ytdRows.map(r => ((Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || s20_0) / s20_0 - 1) * 100);
 
-      function renderGrowth(ytdObj, firstDateStr){
-        var c = el("growthTracker");
-        if(!c) return;
-        if(!ytdObj){ c.innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">No YTD data.</p>"; return; }
-        var items = [
-          { label: "Strategy", ytd: ytdObj.Strategy_Net },
-          { label: "SPY B&H", ytd: ytdObj.BuyHold_SPY },
-          { label: "SPY 1.3x", ytd: ytdObj.BuyHold_SPY_1.3x_Net },
-          { label: "SPY 2.0x", ytd: ytdObj.BuyHold_SPY_2.0x_Net }
-        ];
-        var html = items.map(function(item){
-          var endVal = 1000 * (1 + item.ytd), diff = endVal - 1000;
-          var valColor = item.label === "Strategy" ? "var(--trading-green)" : (diff >= 0 ? "var(--text)" : "var(--trading-red)");
-          var diffColor = diff >= 0 ? "var(--trading-green)" : "var(--trading-red)";
-          return "<div style=\"text-align:center;\"><p style=\"font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin:0 0 8px;\">" + item.label + "</p><p style=\"font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:" + valColor + ";margin:0 0 4px;\">" + fmtCurrency(endVal) + "</p><p style=\"font-size:11px;font-family:'JetBrains Mono',monospace;color:" + diffColor + ";margin:0;\">" + (diff >= 0 ? "+" : "") + fmtCurrency(diff) + "</p></div>";
-        }).join("");
-        c.innerHTML = html;
-        if(firstDateStr){ var d = el("growthTrackerDesc"); if(d) d.textContent = "If you invested $1,000 on " + firstDateStr + " — here's where you'd be today."; }
-      }
-
-      function renderChart(rows, ytdYear){
-        var canvas = el("ytdChart");
-        var placeholder = el("ytdChartPlaceholder");
-        if(!canvas || !canvas.parentNode) return;
-        if(placeholder) placeholder.style.display = "none";
-        var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
-        if(ytdRows.length === 0){
-          if(canvas.parentNode) canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">No YTD data for " + ytdYear + ".</div>";
-          return;
-        }
-        var s0 = ytdRows[0], strat0 = Number(s0.Strategy_Net_Eq) || 1, spy0 = Number(s0.BuyHold_SPY_Eq) || 1, s13_0 = Number(s0["BuyHold_SPY_1.3x_Net_Eq"]) || 1, s20_0 = Number(s0["BuyHold_SPY_2.0x_Net_Eq"]) || 1;
-        var labels = ytdRows.map(function(r){ var d = new Date(r.date); return d.toLocaleDateString("en-US", {month:"short", day:"numeric"}); });
-        var strat = ytdRows.map(function(r){ var v = Number(r.Strategy_Net_Eq) || strat0; return ((v/strat0)-1)*100; });
-        var spy = ytdRows.map(function(r){ var v = Number(r.BuyHold_SPY_Eq) || spy0; return ((v/spy0)-1)*100; });
-        var spy13 = ytdRows.map(function(r){ var v = Number(r["BuyHold_SPY_1.3x_Net_Eq"]) || s13_0; return ((v/s13_0)-1)*100; });
-        var spy20 = ytdRows.map(function(r){ var v = Number(r["BuyHold_SPY_2.0x_Net_Eq"]) || s20_0; return ((v/s20_0)-1)*100; });
-        if(typeof Chart === "undefined"){ canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">Chart.js not loaded.</div>"; return; }
-        try {
-          new Chart(canvas.getContext("2d"), {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [
-                { label: "Strategy (Net)", data: strat, borderColor: "hsl(142 72% 45%)", backgroundColor: "hsla(142,72%,45%,0.08)", borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 0 },
-                { label: "SPY B&H", data: spy, borderColor: "hsl(215 12% 50%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 },
-                { label: "SPY 1.3x", data: spy13, borderColor: "hsl(187 80% 52%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 },
-                { label: "SPY 2.0x", data: spy20, borderColor: "hsl(0 72% 55%)", borderWidth: 1.5, borderDash: [4,2], tension: 0.4, pointRadius: 0 }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              interaction: { mode: "index", intersect: false },
-              plugins: { legend: { display: true }, tooltip: { callbacks: { label: function(it){ return it.dataset.label + ": " + (Number(it.raw) >= 0 ? "+" : "") + Number(it.raw).toFixed(2) + "%"; } } } },
-              scales: {
-                x: { ticks: { color: "hsl(215 12% 50%)", maxTicksLimit: 10 }, grid: { color: "hsla(220,14%,18%,0.5)" } },
-                y: { ticks: { color: "hsl(215 12% 50%)", callback: function(v){ return v + "%"; } }, grid: { color: "hsla(220,14%,18%,0.5)" } }
-              }
-            }
-          });
-        } catch(e) {
-          canvas.parentNode.innerHTML = "<div style=\"padding:40px;text-align:center;color:var(--muted);\">Chart error: " + (e.message || "unknown") + "</div>";
-        }
-      }
-
-      function run(){
-        loadJSON("data/latest.json").then(function(latest){
-          var rec = latest.recommendation;
-          if(rec) renderAllocation(rec);
-          var d = latest.last_backtest_date;
-          setText("portfolioDateRange", d ? "As of: " + new Date(d).toLocaleDateString("en-US", {year:"numeric", month:"short", day:"numeric"}) : "As of: —");
-          var s = latest.summary;
-          if(s){
-            var pct = { Strategy_Net: s.Strategy_Net && s.Strategy_Net.YTD, BuyHold_SPY: s.BuyHold_SPY && s.BuyHold_SPY.YTD, BuyHold_SPY_1.3x_Net: s["BuyHold_SPY_1.3x_Net"] && s["BuyHold_SPY_1.3x_Net"].YTD, BuyHold_SPY_2.0x_Net: s["BuyHold_SPY_2.0x_Net"] && s["BuyHold_SPY_2.0x_Net"].YTD };
-            renderYTD(pct);
-            renderGrowth(pct, null);
+      new Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "Strategy (Net)", data: strat, borderColor: "hsl(142 72% 45%)", backgroundColor: "hsla(142,72%,45%,0.08)", borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 0 },
+            { label: "SPY B&H", data: spy, borderColor: "hsl(215 12% 50%)", borderWidth: 1.5, borderDash: [4, 2], tension: 0.4, pointRadius: 0 },
+            { label: "SPY 1.3x", data: spy13, borderColor: "hsl(187 80% 52%)", borderWidth: 1.5, borderDash: [4, 2], tension: 0.4, pointRadius: 0 },
+            { label: "SPY 2.0x", data: spy20, borderColor: "hsl(0 72% 55%)", borderWidth: 1.5, borderDash: [4, 2], tension: 0.4, pointRadius: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: { legend: { display: true }, tooltip: { callbacks: { label: (it) => `${it.dataset.label}: ${Number(it.raw) >= 0 ? "+" : ""}${Number(it.raw).toFixed(2)}%` } } },
+          scales: {
+            x: { ticks: { color: "hsl(215 12% 50%)", maxTicksLimit: 10 }, grid: { color: "hsla(220,14%,18%,0.5)" } },
+            y: { ticks: { color: "hsl(215 12% 50%)", callback: (v) => `${v}%` }, grid: { color: "hsla(220,14%,18%,0.5)" } }
           }
-          loadCSV("data/equity_curve_TURBO_phase7_BASE.csv").then(function(csv){
-            var rows = csv.rows || [];
-            if(rows.length === 0) return;
-            var lastRow = rows.filter(function(r){ return r.date; }).pop();
-            var ytdYear = lastRow && lastRow.date ? parseInt(String(lastRow.date).slice(0,4), 10) : new Date().getFullYear();
-            var ytdFromEq = computeYTDFromEquity(rows, ytdYear);
-            if(ytdFromEq){
-              renderYTD(ytdFromEq);
-              renderGrowth(ytdFromEq, null);
-              var ytdRows = rows.filter(function(r){ return r.date && String(r.date).indexOf(String(ytdYear)) === 0; });
-              if(ytdRows.length > 0){ var firstD = new Date(ytdRows[0].date).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}); var desc = el("growthTrackerDesc"); if(desc) desc.textContent = "If you invested $1,000 on " + firstD + " — here's where you'd be today."; }
-            }
-            setTimeout(function(){ renderChart(rows, ytdYear); }, 100);
-          }).catch(function(){
-            var ph = el("ytdChartPlaceholder");
-            if(ph) ph.textContent = "Chart: equity curve file could not be loaded.";
-          });
-        }).catch(function(err){
-          setText("portfolioDateRange", "As of: —");
-          var g = el("growthTracker");
-          if(g) g.innerHTML = "<p style=\"font-size:13px;color:var(--muted);\">Could not load data. Check <span class=\"mono\">data/latest.json</span> and <span class=\"mono\">data/equity_curve_TURBO_phase7_BASE.csv</span>.</p>";
-          var ph = el("ytdChartPlaceholder");
-          if(ph) ph.textContent = "Chart data could not be loaded.";
-          console.error("Portfolio data load failed:", err);
+        }
+      });
+    }
+
+    async function ensureChartJs(){
+      if(typeof Chart !== "undefined") return;
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error("Failed to load Chart.js"));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function main(){
+      let latest;
+      try {
+        latest = await loadJSON("data/latest.json");
+      } catch (err) {
+        setText("portfolioDateRange", "As of: —");
+        const g = el("growthTracker");
+        if(g) g.innerHTML = '<p style="font-size:13px;color:var(--muted);">Could not load data. Check <span class="mono">data/latest.json</span>.</p>';
+        const ph = el("ytdChartPlaceholder");
+        if(ph) ph.textContent = "Chart data could not be loaded.";
+        console.error("Portfolio latest.json load failed:", err);
+        return;
+      }
+
+      renderAllocation(latest.recommendation || {});
+      setText("portfolioDateRange", latest.last_backtest_date ? "As of: " + new Date(latest.last_backtest_date).toLocaleDateString("en-US", {year: "numeric", month: "short", day: "numeric"}) : "As of: —");
+
+      const s = latest.summary;
+      if(s){
+        renderYTD({
+          Strategy_Net: s.Strategy_Net && s.Strategy_Net.YTD,
+          BuyHold_SPY: s.BuyHold_SPY && s.BuyHold_SPY.YTD,
+          BuyHold_SPY_1.3x_Net: s["BuyHold_SPY_1.3x_Net"] && s["BuyHold_SPY_1.3x_Net"].YTD,
+          BuyHold_SPY_2.0x_Net: s["BuyHold_SPY_2.0x_Net"] && s["BuyHold_SPY_2.0x_Net"].YTD
+        });
+        renderGrowth({
+          Strategy_Net: s.Strategy_Net && s.Strategy_Net.YTD,
+          BuyHold_SPY: s.BuyHold_SPY && s.BuyHold_SPY.YTD,
+          BuyHold_SPY_1.3x_Net: s["BuyHold_SPY_1.3x_Net"] && s["BuyHold_SPY_1.3x_Net"].YTD,
+          BuyHold_SPY_2.0x_Net: s["BuyHold_SPY_2.0x_Net"] && s["BuyHold_SPY_2.0x_Net"].YTD
         });
       }
-      if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
-      else run();
-    })();
+
+      let csvRows = [];
+      let ytdYear = null;
+      try {
+        const csv = await loadCSV("data/equity_curve_TURBO_phase7_BASE.csv");
+        csvRows = csv.rows || [];
+        if(csvRows.length > 0){
+          const lastRow = csvRows.filter(r => r.date).pop();
+          ytdYear = (lastRow && lastRow.date) ? parseInt(String(lastRow.date).slice(0, 4), 10) : new Date().getFullYear();
+          const ytdFromEq = computeYTDFromEquity(csvRows, ytdYear);
+          if(ytdFromEq){
+            renderYTD(ytdFromEq);
+            renderGrowth(ytdFromEq);
+            const ytdRows = csvRows.filter(r => r.date && String(r.date).startsWith(String(ytdYear)));
+            if(ytdRows.length > 0){
+              const firstD = new Date(ytdRows[0].date).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
+              renderGrowth(ytdFromEq, firstD);
+            }
+          }
+        }
+      } catch (err) {
+        const ph = el("ytdChartPlaceholder");
+        if(ph) ph.textContent = "Chart data file could not be loaded.";
+        console.error("Portfolio CSV load failed:", err);
+      }
+
+      if(csvRows.length > 0 && ytdYear !== null){
+        try {
+          await ensureChartJs();
+          renderChart(csvRows, ytdYear);
+        } catch (err) {
+          const ph = el("ytdChartPlaceholder");
+          if(ph) ph.textContent = "Chart unavailable right now.";
+          console.error("Chart.js load/render failed:", err);
+        }
+      }
+    }
+
+    main().catch((err) => {
+      console.error("Portfolio fatal error:", err);
+    });
   </script>
 </body>
 </html>
