@@ -42,30 +42,8 @@
           Measures how much returns move up and down: the 30-day line shows recent risk, and the 252-day line shows the long-term risk level.
         </div>
       </div>
-      <div style="position: relative; height: 360px; width: 100%; background: #fff; border-radius: 12px; padding: 12px; box-sizing: border-box;">
+      <div style="position: relative; height: 360px; width: 100%; background: #000000; border-radius: 10px; overflow: hidden; padding: 12px; box-sizing: border-box;">
         <canvas id="volChart"></canvas>
-      </div>
-      <div style="margin-top: 12px; padding: 14px 16px; background: hsl(220 18% 8% / 0.5); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 18px 16px; backdrop-filter: blur(4px);">
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; border-bottom: 3px dashed hsl(142 72% 45%);"></span>
-          Strategy 30d
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: hsl(142 72% 45%); border-radius: 2px;"></span>
-          Strategy 252d
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: hsl(215 12% 50%); border-radius: 2px;"></span>
-          SPY B&amp;H 252d
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: hsl(187 80% 52%); opacity: 0.85; border-radius: 2px;"></span>
-          SPY 1.3x 252d
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: hsl(0 72% 55%); opacity: 0.85; border-radius: 2px;"></span>
-          SPY 2.0x 252d
-        </span>
       </div>
     </section>
 
@@ -77,26 +55,8 @@
           Shows the biggest drop from a recent peak during the last 252 trading days; more negative values mean the strategy had a deeper fall.
         </div>
       </div>
-      <div style="position: relative; height: 360px; width: 100%; background: #fff; border-radius: 12px; padding: 12px; box-sizing: border-box;">
+      <div style="position: relative; height: 360px; width: 100%; background: #000000; border-radius: 10px; overflow: hidden; padding: 12px; box-sizing: border-box;">
         <canvas id="ddChart"></canvas>
-      </div>
-      <div style="margin-top: 12px; padding: 14px 16px; background: hsl(220 18% 8% / 0.5); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 18px 16px; backdrop-filter: blur(4px);">
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-green); border-radius: 2px;"></span>
-          Strategy
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--muted); border-radius: 2px;"></span>
-          SPY B&amp;H
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-cyan); opacity: 0.6; border-radius: 2px;"></span>
-          SPY 1.3x
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-red); opacity: 0.6; border-radius: 2px;"></span>
-          SPY 2.0x
-        </span>
       </div>
     </section>
 
@@ -108,26 +68,8 @@
           Shows risk-adjusted performance over the last 252 trading days; higher values mean the strategy earned more return for the risk it took.
         </div>
       </div>
-      <div style="position: relative; height: 360px; width: 100%; background: #fff; border-radius: 12px; padding: 12px; box-sizing: border-box;">
+      <div style="position: relative; height: 360px; width: 100%; background: #000000; border-radius: 10px; overflow: hidden; padding: 12px; box-sizing: border-box;">
         <canvas id="sharpeChart"></canvas>
-      </div>
-      <div style="margin-top: 12px; padding: 14px 16px; background: hsl(220 18% 8% / 0.5); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 18px 16px; backdrop-filter: blur(4px);">
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-green); border-radius: 2px;"></span>
-          Strategy
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--muted); border-radius: 2px;"></span>
-          SPY B&amp;H
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-cyan); opacity: 0.6; border-radius: 2px;"></span>
-          SPY 1.3x
-        </span>
-        <span style="display: flex; align-items: center; gap: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500;">
-          <span style="display: inline-block; width: 20px; height: 3px; background: var(--trading-red); opacity: 0.6; border-radius: 2px;"></span>
-          SPY 2.0x
-        </span>
       </div>
     </section>
 
@@ -445,25 +387,25 @@
           scales: {
             x: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
             },
             y: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11},
                 callback: function(value) {
                   return value.toFixed(1) + "%";
                 }
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
@@ -561,25 +503,25 @@
           scales: {
             x: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
             },
             y: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11},
                 callback: function(value) {
                   return value.toFixed(1) + "%";
                 }
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
@@ -677,22 +619,22 @@
           scales: {
             x: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
             },
             y: {
               ticks: {
-                color: "#64748b",
+                color: "hsl(215 12% 50%)",
                 font: {family: "'JetBrains Mono', monospace", size: 11}
               },
               grid: {
-                color: "rgba(15, 23, 42, 0.08)",
+                color: "rgba(255, 255, 255, 0.08)",
                 drawBorder: false,
                 lineWidth: 1
               }
